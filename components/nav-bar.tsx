@@ -3,78 +3,65 @@ import {
   ArrowLeftToLine,
   ArrowRightToLine,
   CalendarIcon,
-  EuroIcon,
   HomeIcon,
+  ShoppingBasket,
   UserCircleIcon,
-  UsersIcon,
-  CalendarDays,
 } from "lucide-react";
 import { useState } from "react";
 import { TooltipComponent } from "./tooltip";
 import { cn } from "@/lib/utils";
 import { Separator } from "@radix-ui/react-separator";
 import { usePathname } from "next/navigation";
-import { LogoutButton } from "./logout-button";
 import { NotificationAlert } from "./notification-alert";
 import { useUser } from "@/context/user-context";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 
 export function NavBar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const isMobile = useIsMobile();
   return (
     <nav
       className={cn(
-        "bg-light p-4 flex flex-col border-r-2 border-primary",
-        !collapsed && "w-[200px]"
+        "bg-light p-4 flex flex-row md:flex-col md:border-r-2 md:border-primary",
+        !collapsed && !isMobile && "w-[200px]"
       )}
     >
-      <NavBarHeader collapsed={collapsed} setCollapsed={setCollapsed} />
-      <Separator className="w-full h-0.5 bg-primary" />
-      <ul className="grid gap-4 pt-4">
+      <ul className="grid grid-cols-[1fr_1fr_1fr_1fr] w-full md:grid-cols-1 md:grid-rows-auto md:gap-4">
+        <NavBarHeader collapsed={collapsed} setCollapsed={setCollapsed} />
+        {!isMobile && (
+          <Separator
+            className="w-full h-0.5 bg-primary"
+            orientation="vertical"
+          />
+        )}
         <NavBarItem
           icon={HomeIcon}
           to="/"
           selected={pathname === "/"}
           collapsed={collapsed}
         >
-          Dashboard
+          Inici
         </NavBarItem>
-        <NavBarItem
-          icon={EuroIcon}
-          to="/finance"
-          selected={pathname.includes("finance")}
-          collapsed={collapsed}
-        >
-          Finances
-        </NavBarItem>
-        <NavBarItem
-          icon={UsersIcon}
-          to="/clients"
-          selected={pathname.includes("clients")}
-          collapsed={collapsed}
-        >
-          Clients
-        </NavBarItem>
+
         <NavBarItem
           icon={CalendarIcon}
-          to="/time-table"
-          selected={pathname.includes("time-table")}
+          to="/timetable"
+          selected={pathname.includes("timetable")}
           collapsed={collapsed}
         >
           Horari
         </NavBarItem>
+
         <NavBarItem
-          icon={CalendarDays}
-          to="/calendar"
-          selected={pathname.includes("calendar")}
+          icon={ShoppingBasket}
+          to="/products"
+          selected={pathname.includes("products")}
           collapsed={collapsed}
         >
-          Calendar
+          Tarifes
         </NavBarItem>
       </ul>
-      <div className="mt-auto flex justify-center">
-        <LogoutButton />
-      </div>
     </nav>
   );
 }
@@ -86,38 +73,47 @@ interface NavBarHeaderProps {
 
 function NavBarHeader({ collapsed, setCollapsed }: NavBarHeaderProps) {
   const { user } = useUser();
+  const isMobile = useIsMobile();
+  const pathname = usePathname();
 
   return (
-    <div className="flex items-center justify-between border-primary pb-4 cursor-pointer">
+    <div
+      className={cn(
+        "flex items-center justify-center md:justify-between border-primary cursor-pointer",
+        collapsed && "justify-center"
+      )}
+    >
       {!collapsed && (
         <NavBarItem
-          to={`/me/${user?.id}`}
-          selected={false}
+          to="/me"
+          selected={pathname === "/me"}
           collapsed={collapsed}
           icon={UserCircleIcon}
         >
-          Sergi
+          {isMobile ? "Perfil" : user?.name}
           <NotificationAlert />
         </NavBarItem>
       )}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="w-fit border-light hover:border-primary p-1 rounded-md cursor-pointer"
-      >
-        {collapsed ? (
-          <ArrowRightToLine
-            color={"var(--color-primary)"}
-            className="hover:path-red-500 min-h-10"
-            size={20}
-          />
-        ) : (
-          <ArrowLeftToLine
-            color="var(--color-primary)"
-            className="min-h-10"
-            size={20}
-          />
-        )}
-      </button>
+      {!isMobile && (
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="w-fit border-light hover:border-primary p-1 rounded-md cursor-pointer"
+        >
+          {collapsed ? (
+            <ArrowRightToLine
+              color={"var(--color-primary)"}
+              className="hover:path-red-500 min-h-10"
+              size={20}
+            />
+          ) : (
+            <ArrowLeftToLine
+              color="var(--color-primary)"
+              className="min-h-10"
+              size={20}
+            />
+          )}
+        </button>
+      )}
     </div>
   );
 }
@@ -142,9 +138,11 @@ function NavBarItem({
   const Icon = icon;
 
   const content = (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div
+      className={cn("flex flex-col md:flex-row items-center gap-2", className)}
+    >
       <Icon className="inline-block" size={20} />
-      {!collapsed && children}
+      {!collapsed ? children : null}
     </div>
   );
 
@@ -154,7 +152,8 @@ function NavBarItem({
       className={cn(
         selected && "text-primary underline",
         !selected && "text-dark-900 hover:text-primary",
-        "flex items-center gap-2 min-h-10 cursor-pointer"
+        collapsed && "justify-center",
+        "flex items-center gap-2 min-h-10 cursor-pointer justify-center md:justify-start"
       )}
     >
       {collapsed ? (

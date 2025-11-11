@@ -3,6 +3,7 @@
 import { DropdownMenuComponent } from "./dropdown-menu";
 import { EllipsisVerticalIcon } from "lucide-react";
 import { NavBar } from "./nav-bar";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 
 export interface PageSkeletonProps {
   title: string;
@@ -28,9 +29,11 @@ export function PageSkeleton({
     () => "auto"
   ).join("_");
 
+  const isMobile = useIsMobile();
+
   return (
-    <main className="grid grid-cols-[auto_1fr] h-screen">
-      <NavBar />
+    <main className="grid grid-rows-[1fr_auto] md:grid-cols-[auto_1fr] h-screen">
+      {isMobile ? null : <NavBar />}
       <div className="grid gap-8 grid-rows-[auto_1fr] pt-8 mb-8 pl-8 pr-12 max-h-dvh overflow-y-hidden">
         <header>
           <div className="flex items-center justify-between">
@@ -62,6 +65,7 @@ export function PageSkeleton({
           ))}
         </div>
       </div>
+      {isMobile ? <NavBar /> : null}
     </main>
   );
 }
