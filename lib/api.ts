@@ -1,3 +1,5 @@
+import { HowDidYouFindUs } from "@/components/onboarding-process/context";
+
 // API configuration
 const SOMA_API_BASE_URL =
   process.env.NEXT_PUBLIC_SOMA_API_URL || "http://localhost:3001";
@@ -365,6 +367,7 @@ export interface User {
   missedSessionsCount: number;
   onboardingCompletedAt: string | null;
   postalCode: string | null;
+  howDidYouFindUs: HowDidYouFindUs | null;
   createdAt: string;
   updatedAt: string | null;
   deletedAt: string | null;

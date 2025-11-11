@@ -5,22 +5,12 @@ import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { useLoggedUser } from "@/hooks/api/users";
 import { User } from "@/lib/api";
-import {
-  clearUserFromStorage,
-  loadUserFromStorage,
-  saveUserToStorage,
-} from "@/lib/user-storage";
 import { useAuth0 } from "@auth0/auth0-react";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { bebas } from "@/app/fonts";
+import { OnboardingProcess } from "@/components/onboarding-process/component";
+import { OnboardingProcessProvider } from "@/components/onboarding-process/context";
 
 // Define the context type that includes the user data and token
 export interface UserContextType {
@@ -43,6 +33,7 @@ export function UserProvider({ children }: UserProviderProps) {
     mutate: loginUser,
     isError,
     isPending,
+    isSuccess,
   } = useLoggedUser({
     onSuccess: (data) => {
       setUserData(data);
@@ -73,9 +64,7 @@ export function UserProvider({ children }: UserProviderProps) {
   const useMemoProjectSomaLogo = useMemo(() => {
     return (
       <div className="flex items-center justify-center">
-        <h1
-          className={cn(bebas.className, "text-8xl font-bold text-secondary")}
-        >
+        <h1 className={cn(bebas.className, "text-8xl font-bold text-primary")}>
           PROJECT SOMA
         </h1>
       </div>
@@ -124,7 +113,13 @@ export function UserProvider({ children }: UserProviderProps) {
           }),
       }}
     >
-      {children}
+      {isSuccess && userData?.onboardingCompletedAt == null ? (
+        <OnboardingProcessProvider>
+          <OnboardingProcess />
+        </OnboardingProcessProvider>
+      ) : (
+        children
+      )}
     </UserContext.Provider>
   );
 }

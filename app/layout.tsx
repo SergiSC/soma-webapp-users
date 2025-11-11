@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Portal Web",
-  description: "Portal Web de Soma per a treballs",
+  title: "SOMA APP",
+  description: "Portal web de Project Soma",
 };
 
 const auth0Config = {
@@ -35,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased `}
       >
         <Providers auth0Config={auth0Config}>{children}</Providers>
         <Toaster position="top-center" />

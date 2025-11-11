@@ -3,16 +3,20 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface UseLoggedUserProps {
-  onSuccess: (data: User) => void;
-  onError: (error: Error) => void;
+  onSuccess?: (data: User) => void;
+  onError?: (error: Error) => void;
 }
 
-export function useLoggedUser({ onSuccess, onError }: UseLoggedUserProps) {
+export function useLoggedUser({ onSuccess, onError }: UseLoggedUserProps = {}) {
   return useMutation({
     mutationKey: ["logged-user"],
     mutationFn: api.users.login,
     onSuccess,
-    onError,
+    onError:
+      onError ||
+      (() => {
+        toast.error(`Error al obtenir l'usuari`);
+      }),
   });
 }
 

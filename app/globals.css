@@ -56,7 +56,7 @@
   --secondary: #d2e6bc;
   --secondary-foreground: #f6f6f6;
   --muted: #c7c2b7;
-  --muted-foreground: #333333;
+  --muted-foreground: #525252;
   --accent: #f3f4f6;
   --accent-foreground: #333333;
   --destructive: #f36060;
@@ -115,6 +115,11 @@
 }
 
 @layer base {
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    @apply appearance-none m-0;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
