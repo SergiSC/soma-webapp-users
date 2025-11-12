@@ -82,6 +82,12 @@ export interface Subscription {
 export interface ReservationSummary {
   status: ReservationStatus;
   id: string;
+  sessionType: SessionTypeEnum | null;
+  sessionSchedule: {
+    day: string;
+    start: string;
+    end: string;
+  } | null;
 }
 
 export interface UserInformation {

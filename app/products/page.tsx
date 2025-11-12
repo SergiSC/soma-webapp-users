@@ -1,5 +1,25 @@
+"use client";
+
 import { PageSkeleton } from "@/components/page-skeleton";
+import { ProductCards } from "@/components/cards/product-card";
+import { useProducts } from "@/hooks/api/products";
 
 export default function ProductsPage() {
-  return <PageSkeleton title="Tarifes" sections={[]} />;
+  const { data: productsResponse, isLoading } = useProducts({ active: true });
+
+  return (
+    <PageSkeleton
+      title="Tarifes"
+      sections={[
+        {
+          content: (
+            <ProductCards
+              products={productsResponse?.items}
+              isLoading={isLoading}
+            />
+          ),
+        },
+      ]}
+    />
+  );
 }

@@ -7,9 +7,20 @@ import {
   ReservationSummary,
   useUserInformation,
 } from "@/hooks/api/user-information";
+import { SessionTypeEnum } from "@/hooks/api/sessions";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { Spinner } from "../ui/spinner";
+
+// Catalan session type labels
+const sessionTypeToLabelCatalan: Record<SessionTypeEnum, string> = {
+  [SessionTypeEnum.PILATES_REFORMER]: "Reformer",
+  [SessionTypeEnum.PILATES_MAT]: "Pilates Mat",
+  [SessionTypeEnum.BARRE]: "Barre",
+  [SessionTypeEnum.FIT_MIX]: "Fit",
+  [SessionTypeEnum.PILATES_MAT_PLUS_65]: "Pilates Mat +65",
+  [SessionTypeEnum.FIT_MIX_PLUS_65]: "Fit +65",
+};
 
 interface MySessionsCardProps {
   type: "next" | "completed";
@@ -94,53 +105,65 @@ export function MySessionsCard({
 
   return (
     <Card className="bg-accent/50 border-accent-foreground">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-secondary-foreground">
-            Les meves sessions
-          </CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="p-2">
         <div className="space-y-4 md:grid md:grid-cols-2 md:gap-8">
           <div>
-            <h4 className="font-semibold text-secondary-foreground mb-3">
-              Properes sessions
-            </h4>
-            {totalReservations === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                No tens cap sessió propera
-              </p>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-xs text-secondary-foreground">
-                  <strong>Classes confirmades:</strong>{" "}
-                  {reservationCounts.confirmed}
-                </p>
-                <p className="text-xs text-secondary-foreground">
-                  <strong>En llista d&apos;espera:</strong>{" "}
-                  {reservationCounts.waitingList}
-                </p>
-                {reservationCounts.cancelled > 0 && (
-                  <p className="text-xs text-secondary-foreground">
-                    <strong>Cancel·lades:</strong> {reservationCounts.cancelled}
-                  </p>
-                )}
-              </div>
-            )}
+            {reservations
+              .filter(
+                (r) =>
+                  r.status === ReservationStatus.CONFIRMED ||
+                  r.status === ReservationStatus.WAITING_LIST
+              )
+              .sort((a, b) => {
+                if (!a.sessionSchedule || !b.sessionSchedule) return 0;
+                return (
+                  new Date(a.sessionSchedule.day).getTime() -
+                  new Date(b.sessionSchedule.day).getTime()
+                );
+              })
+              .map((reservation) => (
+                <div
+                  key={reservation.id}
+                  className="text-xs text-secondary-foreground p-2 rounded bg-accent/30"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      {reservation.sessionSchedule && (
+                        <div className="font-medium">
+                          {new Date(
+                            reservation.sessionSchedule.day
+                          ).toLocaleDateString("ca-ES", {
+                            weekday: "short",
+                            day: "numeric",
+                            month: "short",
+                          })}
+                        </div>
+                      )}
+                      <div className="text-muted-foreground">
+                        {reservation.sessionType &&
+                          sessionTypeToLabelCatalan[
+                            reservation.sessionType as SessionTypeEnum
+                          ]}
+                        {reservation.sessionSchedule &&
+                          ` • ${reservation.sessionSchedule.start} - ${reservation.sessionSchedule.end}`}
+                      </div>
+                    </div>
+                    <div className="ml-2">
+                      {reservation.status === ReservationStatus.WAITING_LIST ? (
+                        <span className="text-xs px-2 py-1 rounded bg-yellow-500/20 text-yellow-700 dark:text-yellow-400">
+                          Llista d&apos;espera
+                        </span>
+                      ) : (
+                        <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-700 dark:text-green-400">
+                          Confirmada
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
           </div>
         </div>
-
-        {type === "next" && totalReservations === 0 && (
-          <div className="mt-4 pt-4 border-t border-accent-foreground">
-            <Button
-              onClick={() => router.push("/timetable")}
-              className="w-full"
-            >
-              Reservar
-            </Button>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
