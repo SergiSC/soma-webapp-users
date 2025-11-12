@@ -2,7 +2,6 @@ import { MyPackCards } from "@/components/cards/my-pack.card";
 import {
   MyCompletedSessionsCard,
   MyNextSessionsCard,
-  MySessionsCard,
 } from "@/components/cards/my-sessions.card";
 import { MySubscriptionCard } from "@/components/cards/my-subscription.card";
 import { PageSkeleton } from "@/components/page-skeleton";

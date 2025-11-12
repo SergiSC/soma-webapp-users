@@ -29,7 +29,7 @@ export function PageSkeleton({
   return (
     <main className="grid grid-rows-[1fr_auto] md:grid-cols-[auto_1fr] h-screen">
       {isMobile ? null : <NavBar />}
-      <div className="grid gap-8 grid-rows-[auto_1fr] p-8 pb-0 mb-4 md:mb-0 md:pb-8 md:pr-12 max-h-dvh">
+      <div className="grid gap-4 md:gap-8 grid-rows-[auto_1fr] p-8 pb-0 mb-4 md:mb-0 md:pb-8 md:pr-12 max-h-dvh">
         <header>
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold text-primary">{title}</h1>

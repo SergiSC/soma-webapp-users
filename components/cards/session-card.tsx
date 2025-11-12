@@ -1,0 +1,115 @@
+import { DailySession } from "@/hooks/api/daily-sessions";
+import { sessionTypeToLabel, sessionColorsRecord } from "@/hooks/api/sessions";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { ReservationStatus } from "@/hooks/api/user-information";
+import { Button } from "../ui/button";
+import { useState } from "react";
+import { SessionReservationDialog } from "../dialogs/session-reservation-dialog";
+
+interface SessionCardProps {
+  session: DailySession;
+  className?: string;
+}
+
+export function SessionCard({ session, className }: SessionCardProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const formatTime = (time: string) => {
+    return time.slice(0, 5);
+  };
+
+  const sessionColor = sessionColorsRecord[session.type];
+  const confirmedReservations = session.reservations.filter(
+    (reservation) => reservation.status === ReservationStatus.CONFIRMED
+  );
+  const isFull = confirmedReservations.length === session.room?.capacity;
+  const isAlmostFull = session.room?.capacity
+    ? confirmedReservations.length >= Math.ceil(session.room.capacity * 0.8)
+    : false;
+  const waitingListReservations = session.reservations.filter(
+    (reservation) => reservation.status === ReservationStatus.WAITING_LIST
+  );
+
+  return (
+    <Card
+      className={cn(
+        "border-l-4 transition-all hover:shadow-md cursor-pointer bg-primary-foreground",
+        className
+      )}
+      style={{ borderLeftColor: sessionColor }}
+    >
+      <CardContent className="p-4">
+        <div className="flex flex-col gap-3">
+          {/* Header: Class name and time */}
+          <div className="flex items-start justify-between">
+            <div className="flex flex-col gap-1 flex-1">
+              <h4 className="font-semibold text-lg text-foreground">
+                {sessionTypeToLabel[session.type]}
+              </h4>
+            </div>
+            <div className="text-right shrink-0 ml-4">
+              <p className="font-semibold text-lg text-foreground">
+                {formatTime(session.startHour)}
+              </p>
+            </div>
+          </div>
+
+          {/* Footer: Room and capacity info */}
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
+            <div className="flex flex-col gap-2">
+              <p
+                className={cn(
+                  "text-xs text-muted-foreground",
+                  isFull
+                    ? "text-destructive"
+                    : isAlmostFull
+                    ? "text-yellow-500"
+                    : "text-muted-foreground"
+                )}
+              >
+                <span className="font-medium">Capacitat:</span>{" "}
+                {
+                  session.reservations.filter(
+                    (reservation) =>
+                      reservation.status === ReservationStatus.CONFIRMED
+                  ).length
+                }
+                /{session.room?.capacity} places
+              </p>
+              <p className="text-xs text-muted-foreground">
+                <span className="font-medium">Professor/a:</span>{" "}
+                {session.teacher?.name}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                <span className="font-medium">Sala:</span> {session.room?.name}
+              </p>
+            </div>
+            <div className="flex flex-col space-between items-end">
+              {waitingListReservations.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium">Llista d&apos;espera:</span>{" "}
+                  {waitingListReservations.length}
+                </p>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-auto"
+                onClick={() => setIsDialogOpen(true)}
+              >
+                Reservar
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+
+      <SessionReservationDialog
+        session={session}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
+    </Card>
+  );
+}
