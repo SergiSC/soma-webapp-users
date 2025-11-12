@@ -2,24 +2,31 @@ import { apiClient } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export enum SessionType {
+export enum SessionTypeEnum {
   PILATES_REFORMER = "reformer",
   PILATES_MAT = "pilates_mat",
   BARRE = "barre",
   FIT_MIX = "fit_mix",
+  PILATES_MAT_PLUS_65 = "pilates_mat_plus_65",
+  FIT_MIX_PLUS_65 = "fit_mix_plus_65",
 }
-export const sessionColorsRecord: Record<SessionType, string> = {
-  [SessionType.PILATES_REFORMER]: "#4285f4",
-  [SessionType.PILATES_MAT]: "#34a853",
-  [SessionType.BARRE]: "#fbbc04",
-  [SessionType.FIT_MIX]: "#ea4335",
+
+export const sessionColorsRecord: Record<SessionTypeEnum, string> = {
+  [SessionTypeEnum.PILATES_REFORMER]: "#4285f4",
+  [SessionTypeEnum.PILATES_MAT]: "#34a853",
+  [SessionTypeEnum.BARRE]: "#fbbc04",
+  [SessionTypeEnum.FIT_MIX]: "#ea4335",
+  [SessionTypeEnum.PILATES_MAT_PLUS_65]: "#34a853",
+  [SessionTypeEnum.FIT_MIX_PLUS_65]: "#ea4335",
 };
 
-export const sessionTypeToLabel: Record<SessionType, string> = {
-  [SessionType.PILATES_REFORMER]: "Pilates Reformer",
-  [SessionType.PILATES_MAT]: "Pilates Mat",
-  [SessionType.BARRE]: "Barre",
-  [SessionType.FIT_MIX]: "Fit",
+export const sessionTypeToLabel: Record<SessionTypeEnum, string> = {
+  [SessionTypeEnum.PILATES_REFORMER]: "Pilates Reformer",
+  [SessionTypeEnum.PILATES_MAT]: "Pilates Mat",
+  [SessionTypeEnum.BARRE]: "Barre",
+  [SessionTypeEnum.FIT_MIX]: "Fit",
+  [SessionTypeEnum.PILATES_MAT_PLUS_65]: "Pilates Mat +65",
+  [SessionTypeEnum.FIT_MIX_PLUS_65]: "Fit +65",
 };
 
 export enum SessionStatus {
@@ -32,7 +39,7 @@ export enum SessionStatus {
 // Event types
 export interface Session {
   id: string;
-  type: SessionType;
+  type: SessionTypeEnum;
   status: SessionStatus;
   day: string;
   startHour: string;

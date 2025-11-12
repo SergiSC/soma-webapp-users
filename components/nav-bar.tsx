@@ -23,7 +23,7 @@ export function NavBar() {
   return (
     <nav
       className={cn(
-        "bg-light p-4 flex flex-row md:flex-col md:border-r-2 md:border-primary",
+        "bg-card sticky bottom-0 p-4 flex flex-row md:flex-col md:border-r-2 md:border-primary",
         !collapsed && !isMobile && "w-[200px]"
       )}
     >
@@ -150,7 +150,7 @@ function NavBarItem({
     <CustomLink
       to={to}
       className={cn(
-        selected && "text-primary underline",
+        selected && "text-accent underline",
         !selected && "text-dark-900 hover:text-primary",
         collapsed && "justify-center",
         "flex items-center gap-2 min-h-10 cursor-pointer justify-center md:justify-start"

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-export function useIsMobile(breakpoint: number = 640) {
+export function useIsMobile(breakpoint: number = 768) {
   const [isMobile, setIsMobile] = useState(true);
 
   useEffect(() => {
@@ -8,16 +8,16 @@ export function useIsMobile(breakpoint: number = 640) {
 
     // Function to update state
     const handleChange = (e: MediaQueryList | MediaQueryListEvent) => {
-      setIsMobile('matches' in e ? e.matches : (e as MediaQueryList).matches);
+      setIsMobile("matches" in e ? e.matches : (e as MediaQueryList).matches);
     };
 
     // Initial check
     handleChange(mediaQuery);
 
     // Listen for changes
-    mediaQuery.addEventListener('change', handleChange);
+    mediaQuery.addEventListener("change", handleChange);
 
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, [breakpoint]);
 
   return isMobile;

@@ -24,20 +24,15 @@ export function PageSkeleton({
   sections,
   actions,
 }: PageSkeletonProps) {
-  const sectionsLength = Array.from(
-    { length: sections.length },
-    () => "auto"
-  ).join("_");
-
   const isMobile = useIsMobile();
 
   return (
     <main className="grid grid-rows-[1fr_auto] md:grid-cols-[auto_1fr] h-screen">
       {isMobile ? null : <NavBar />}
-      <div className="grid gap-8 grid-rows-[auto_1fr] pt-8 mb-8 pl-8 pr-12 max-h-dvh overflow-y-hidden">
+      <div className="grid gap-8 grid-rows-[auto_1fr] p-8 pb-0 mb-4 md:mb-0 md:pb-8 md:pr-12 max-h-dvh">
         <header>
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-primary">{title}</h1>
+            <h1 className="text-3xl font-bold text-primary">{title}</h1>
             {actions && (
               <DropdownMenuComponent
                 trigger={<EllipsisVerticalIcon size={30} />}
@@ -51,10 +46,10 @@ export function PageSkeleton({
           )}
         </header>
         <div
-          className={`grid gap-4 grid-rows-[${sectionsLength}] overflow-y-scroll`}
+          className={`flex flex-col gap-8 overflow-y-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
         >
           {sections.map((section, index) => (
-            <section key={`section-${index}`} className="h-min">
+            <section key={`section-${index}`} className="h-min space-y-2">
               {section.title && (
                 <h2 className="text-lg font-bold text-dark-600">
                   {section.title}
