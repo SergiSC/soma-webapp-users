@@ -122,9 +122,7 @@ export function MySubscriptionCard() {
             No hi ha cap subscripció activa
           </p>
           <Button
-            onClick={() =>
-              router.push("/products?type=subscription&type=subscription-combo")
-            }
+            onClick={() => router.push("/products")}
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             Activar subscripció
