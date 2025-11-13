@@ -15,7 +15,7 @@ export function LogInButton({ label = "Entrar" }: LogInButtonProps) {
       onClick={() =>
         loginWithRedirect({
           authorizationParams: {
-            redirect_uri: `${window.location.origin}/callback`,
+            redirect_uri: `${window.location.origin}/login`,
           },
         })
       }
