@@ -62,7 +62,7 @@ export function ProductCard({ product }: ProductCardProps) {
       );
 
       if (response.url) {
-        window.open(response.url, "_blank");
+        window.location.href = response.url;
         setIsLoading(false);
       }
     } catch (error) {
