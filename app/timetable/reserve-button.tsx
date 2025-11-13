@@ -27,9 +27,13 @@ interface ReserveButtonProps {
     type: SessionTypeEnum;
     isFull: boolean;
   };
+  closeInformationDialog: () => void;
 }
 
-export function ReserveButton({ session }: ReserveButtonProps) {
+export function ReserveButton({
+  session,
+  closeInformationDialog,
+}: ReserveButtonProps) {
   const { data: userInfo } = useUserInformation();
   const subscription = userInfo?.subscription;
   const packs = userInfo?.packs;
@@ -195,6 +199,10 @@ export function ReserveButton({ session }: ReserveButtonProps) {
         onReject={() => setIsDialogOpen(false)}
         isDialogOpen={isDialogOpen}
         setIsDialogOpen={setIsDialogOpen}
+        closeAllDialogs={() => {
+          setIsDialogOpen(false);
+          closeInformationDialog();
+        }}
       />
     </>
   );
@@ -221,6 +229,7 @@ interface MakeReservationProps {
   onReject: () => void;
   isDialogOpen: boolean;
   setIsDialogOpen: (isOpen: boolean) => void;
+  closeAllDialogs: () => void;
 }
 
 // Accept or reject reservation dialog
@@ -232,6 +241,7 @@ function AcceptOrRejectReservationDialog({
   onReject,
   isDialogOpen,
   setIsDialogOpen,
+  closeAllDialogs,
 }: MakeReservationProps) {
   console.log("AAAA", userId, session, canUseSubscription, canUsePack);
   const sessionTypeLabel = sessionTypeToLabelCatalan[session.type];
@@ -277,6 +287,7 @@ function AcceptOrRejectReservationDialog({
         packId: canUsePack.id,
       });
     }
+    closeAllDialogs();
   };
 
   return (

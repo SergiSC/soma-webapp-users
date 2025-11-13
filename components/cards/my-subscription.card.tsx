@@ -20,10 +20,11 @@ export function MySubscriptionCard() {
   const subscription = userInfo?.subscription;
 
   // Check if subscription is active (using isValid from API)
-  const { isActive, isExpired } = useMemo(() => {
+  const { isActive, isExpired, isCancelled } = useMemo(() => {
     return {
       isActive: subscription?.isValid ?? false,
       isExpired: (subscription?.remainingDays ?? 0) <= 0,
+      isCancelled: subscription?.cancelledAt !== null,
     };
   }, [subscription]);
 
@@ -121,7 +122,9 @@ export function MySubscriptionCard() {
             No hi ha cap subscripció activa
           </p>
           <Button
-            onClick={() => router.push("/products")}
+            onClick={() =>
+              router.push("/products?type=subscription&type=subscription-combo")
+            }
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             Activar subscripció
@@ -157,7 +160,9 @@ export function MySubscriptionCard() {
         <CardContent className="flex flex-col gap-4">
           <p className="text-sm text-destructive"></p>
           <Button
-            onClick={() => router.push("/products")}
+            onClick={() =>
+              router.push("/products?type=subscription&type=subscription-combo")
+            }
             variant="destructive"
           >
             Renovar subscripció
@@ -177,6 +182,21 @@ export function MySubscriptionCard() {
         </div>
         {subscription && (
           <div className="text-xs text-secondary-foreground/80">
+            {isCancelled && (
+              <p className="gap-1 flex align-center">
+                <span className="font-semibold">Cancel·lada el:</span>
+                {new Date(subscription.cancelledAt!).toLocaleDateString(
+                  "ca-ES",
+                  {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  }
+                )}
+                . Pots reservar classes fins el dia que finalitza la teva
+                subscripció.
+              </p>
+            )}
             <p className="gap-1 flex align-center">
               <span className="font-semibold">Vàlid fins:</span>
               {new Date(subscription.toDate).toLocaleDateString("ca-ES", {

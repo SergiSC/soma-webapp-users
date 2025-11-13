@@ -127,6 +127,7 @@ export function SessionReservationDialog({
             type: session.type,
             isFull,
           }}
+          closeInformationDialog={() => onOpenChange(false)}
         />
         <div className="flex flex-col gap-4  border-t border-border/50 pt-4">
           {/* Session Type Description */}

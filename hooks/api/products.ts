@@ -1,9 +1,6 @@
 import { apiClient } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ProductTypeEnum,
-  RecurringIntervalEnum,
-} from "./user-information";
+import { ProductTypeEnum, RecurringIntervalEnum } from "./user-information";
 
 export { ProductTypeEnum, RecurringIntervalEnum };
 
@@ -41,15 +38,33 @@ export interface ProductListResponse {
 }
 
 const productsApi = {
-  list: (filters?: { active?: boolean }) =>
-    apiClient.get<ProductListResponse>(
-      `/products${filters?.active !== undefined ? `?active=${filters.active}` : ""}`
-    ),
-  get: (productId: string) =>
-    apiClient.get<Product>(`/products/${productId}`),
+  list: (filters?: {
+    active?: boolean;
+    type?: ProductTypeEnum | ProductTypeEnum[];
+  }) => {
+    const params = new URLSearchParams();
+
+    if (filters?.active !== undefined) {
+      params.append("active", String(filters.active));
+    }
+
+    if (filters?.type) {
+      const types = Array.isArray(filters.type) ? filters.type : [filters.type];
+      types.forEach((type) => params.append("type", type));
+    }
+
+    const queryString = params.toString();
+    return apiClient.get<ProductListResponse>(
+      `/products${queryString ? `?${queryString}` : ""}`
+    );
+  },
+  get: (productId: string) => apiClient.get<Product>(`/products/${productId}`),
 };
 
-export function useProducts(filters?: { active?: boolean }) {
+export function useProducts(filters?: {
+  active?: boolean;
+  type?: ProductTypeEnum | ProductTypeEnum[];
+}) {
   return useQuery({
     queryKey: ["products", filters],
     queryFn: () => productsApi.list(filters),

@@ -7,7 +7,7 @@ import {
   useUserInformation,
 } from "@/hooks/api/user-information";
 import { Button } from "../ui/button";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { SessionReservationDialog } from "../dialogs/session-reservation-dialog";
 
 interface SessionCardProps {
@@ -17,9 +17,12 @@ interface SessionCardProps {
 
 export function SessionCard({ session, className }: SessionCardProps) {
   const { data: userInfo } = useUserInformation();
-  const existingReservation = userInfo?.nextReservations.find(
-    (reservation) => reservation.sessionId === session.id
-  )?.id;
+  const existingReservationType = useMemo(() => {
+    return userInfo?.nextReservations.find((reservation) => {
+      return reservation.sessionId === session.id;
+    })?.status;
+  }, [userInfo?.nextReservations, session.id]);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const formatTime = (time: string) => {
@@ -101,12 +104,16 @@ export function SessionCard({ session, className }: SessionCardProps) {
               )}
               <Button
                 variant="outline"
-                disabled={!!existingReservation}
+                disabled={!!existingReservationType}
                 size="sm"
                 className="mt-auto"
                 onClick={() => setIsDialogOpen(true)}
               >
-                {existingReservation ? "Reservada" : "Reservar"}
+                {existingReservationType
+                  ? existingReservationType === ReservationStatus.CONFIRMED
+                    ? "Reservada"
+                    : "Llista d'espera"
+                  : "Reservar"}
               </Button>
             </div>
           </div>

@@ -75,7 +75,7 @@ export function MyPackCard({ pack: activePack, isLoading }: MyPackCardProps) {
             No queden sessions disponibles en aquest pack
           </p>
           <Button
-            onClick={() => router.push("/products")}
+            onClick={() => router.push("/products?type=pack")}
             variant="destructive"
           >
             Comprar nou pack
@@ -150,7 +150,7 @@ export function MyPackCards() {
               No hi ha cap pack actiu
             </p>
             <Button
-              onClick={() => router.push("/products")}
+              onClick={() => router.push("/products?type=pack")}
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Comprar pack
