@@ -288,13 +288,8 @@ function AcceptOrRejectReservationDialog({
           </DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Si vols cancel·lar la reserva, ho has de fer 3 hores abans del
-          començament de la classe.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Recorda que si no et presentes a la classe, perdràs la teva classe i
-          no la podras recuperar. Si es fa de manera habitual, es cancel·larà la
-          teva subscripció i/o pot haver-hi conseqüències econòmiques.
+          En cas que es vulgui cancel·lar la classe, caldrà fer-ho com a mínim 3
+          hores abans de l&apos;inici. En cas contrari, la classe es perdrà.
         </p>
         <div className="flex gap-2 w-full justify-between">
           <Button variant="outline" onClick={onReject}>

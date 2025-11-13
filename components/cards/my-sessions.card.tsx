@@ -11,6 +11,9 @@ import { SessionTypeEnum } from "@/hooks/api/sessions";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { Spinner } from "../ui/spinner";
+import { Separator } from "../ui/separator";
+import { Trash2Icon } from "lucide-react";
+import { useCancelReservation } from "@/hooks/api/reservations";
 
 // Catalan session type labels
 const sessionTypeToLabelCatalan: Record<SessionTypeEnum, string> = {
@@ -114,58 +117,80 @@ export function MySessionsCard({
                   r.status === ReservationStatus.CONFIRMED ||
                   r.status === ReservationStatus.WAITING_LIST
               )
-              .sort((a, b) => {
-                if (!a.sessionSchedule || !b.sessionSchedule) return 0;
-                return (
-                  new Date(a.sessionSchedule.day).getTime() -
-                  new Date(b.sessionSchedule.day).getTime()
-                );
-              })
-              .map((reservation) => (
-                <div
+              .map((reservation, index) => (
+                <SessionCard
                   key={reservation.id}
-                  className="text-xs text-secondary-foreground p-2 rounded bg-accent/30"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      {reservation.sessionSchedule && (
-                        <div className="font-medium">
-                          {new Date(
-                            reservation.sessionSchedule.day
-                          ).toLocaleDateString("ca-ES", {
-                            weekday: "short",
-                            day: "numeric",
-                            month: "short",
-                          })}
-                        </div>
-                      )}
-                      <div className="text-muted-foreground">
-                        {reservation.sessionType &&
-                          sessionTypeToLabelCatalan[
-                            reservation.sessionType as SessionTypeEnum
-                          ]}
-                        {reservation.sessionSchedule &&
-                          ` • ${reservation.sessionSchedule.start} - ${reservation.sessionSchedule.end}`}
-                      </div>
-                    </div>
-                    <div className="ml-2">
-                      {reservation.status === ReservationStatus.WAITING_LIST ? (
-                        <span className="text-xs px-2 py-1 rounded bg-yellow-500/20 text-yellow-700 dark:text-yellow-400">
-                          Llista d&apos;espera
-                        </span>
-                      ) : (
-                        <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-700 dark:text-green-400">
-                          Confirmada
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                  reservation={reservation}
+                  isFirst={index === 0}
+                />
               ))}
           </div>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function SessionCard({
+  reservation,
+  isFirst,
+}: {
+  reservation: ReservationSummary;
+  isFirst: boolean;
+}) {
+  const { mutate: cancelReservation } = useCancelReservation();
+  const handleCancelReservation = () => {
+    cancelReservation(reservation.id);
+  };
+
+  return (
+    <>
+      {!isFirst && <Separator orientation="horizontal" />}
+      <div
+        key={reservation.id}
+        className="text-xs text-secondary-foreground p-2 rounded bg-accent/30"
+      >
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <div className="font-medium">
+              {reservation.sessionType &&
+                sessionTypeToLabelCatalan[
+                  reservation.sessionType as SessionTypeEnum
+                ]}
+              {reservation.sessionSchedule &&
+                ` • ${reservation.sessionSchedule.start}h`}
+            </div>
+            {reservation.sessionSchedule && (
+              <div className="text-muted-foreground">
+                {new Date(reservation.sessionSchedule.day).toLocaleDateString(
+                  "ca-ES",
+                  {
+                    weekday: "short",
+                    day: "numeric",
+                    month: "short",
+                  }
+                )}
+              </div>
+            )}
+          </div>
+          <div className="ml-2 ">
+            {reservation.status === ReservationStatus.WAITING_LIST ? (
+              <span className="text-xs px-2 py-1 rounded bg-yellow-500/20 text-yellow-700 dark:text-yellow-400">
+                Llista d&apos;espera
+              </span>
+            ) : (
+              <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-700 dark:text-green-400">
+                Confirmada
+              </span>
+            )}
+          </div>
+          <Trash2Icon
+            className="size-4 text-muted-foreground cursor-pointer"
+            onClick={handleCancelReservation}
+          />
+        </div>
+      </div>
+    </>
   );
 }
 

@@ -2,7 +2,10 @@ import { DailySession } from "@/hooks/api/daily-sessions";
 import { sessionTypeToLabel, sessionColorsRecord } from "@/hooks/api/sessions";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { ReservationStatus } from "@/hooks/api/user-information";
+import {
+  ReservationStatus,
+  useUserInformation,
+} from "@/hooks/api/user-information";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import { SessionReservationDialog } from "../dialogs/session-reservation-dialog";
@@ -13,6 +16,10 @@ interface SessionCardProps {
 }
 
 export function SessionCard({ session, className }: SessionCardProps) {
+  const { data: userInfo } = useUserInformation();
+  const existingReservation = userInfo?.nextReservations.find(
+    (reservation) => reservation.sessionId === session.id
+  )?.id;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const formatTime = (time: string) => {
@@ -94,11 +101,12 @@ export function SessionCard({ session, className }: SessionCardProps) {
               )}
               <Button
                 variant="outline"
+                disabled={!!existingReservation}
                 size="sm"
                 className="mt-auto"
                 onClick={() => setIsDialogOpen(true)}
               >
-                Reservar
+                {existingReservation ? "Reservada" : "Reservar"}
               </Button>
             </div>
           </div>

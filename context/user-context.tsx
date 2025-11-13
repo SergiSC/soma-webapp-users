@@ -64,7 +64,12 @@ export function UserProvider({ children }: UserProviderProps) {
   const useMemoProjectSomaLogo = useMemo(() => {
     return (
       <div className="flex items-center justify-center">
-        <h1 className={cn(bebas.className, "text-8xl font-bold text-primary")}>
+        <h1
+          className={cn(
+            bebas.className,
+            "md:text-8xl text-6xl font-bold text-primary"
+          )}
+        >
           PROJECT SOMA
         </h1>
       </div>

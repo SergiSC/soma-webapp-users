@@ -20,7 +20,7 @@ export default function Home() {
           content: <MyPackCards />,
         },
         {
-          title: "Proximes classes",
+          title: "Pròximes classes",
           content: <MyNextSessionsCard />,
         },
         {

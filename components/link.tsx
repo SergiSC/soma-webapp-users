@@ -18,7 +18,7 @@ export function CustomLink({
       href={to}
       {...props}
       className={cn(
-        "text-primary hover:text-primary-dark cursor-pointer hover:underline",
+        "text-primary hover:text-primary-dark cursor-pointer",
         className
       )}
     >
