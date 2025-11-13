@@ -51,7 +51,6 @@ export function StepFive({ previousStep }: StepFiveProps) {
     acceptTermsAndConditions: boolean;
     acceptPrivacyPolicy: boolean;
   }) => {
-    console.log(data);
     handleSetOnboardingData(
       "acceptTermsAndConditions",
       data.acceptTermsAndConditions

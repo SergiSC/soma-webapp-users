@@ -2,7 +2,7 @@
 
 import { useUser } from "@/context/user-context";
 import { useUpdateUser } from "@/hooks/api/users";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import { createContext, useContext, useState } from "react";
 import { toast } from "sonner";
 
@@ -26,7 +26,8 @@ interface OnboardingProcessProviderProps {
 export function OnboardingProcessProvider({
   children,
 }: OnboardingProcessProviderProps) {
-  const { user } = useUser();
+  const { user, updateUser } = useUser();
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [onboardingData, setOnboardingData] = useState<
     OnboardingProcessContextType["onboardingData"]
@@ -54,11 +55,11 @@ export function OnboardingProcessProvider({
     }
   };
 
-  const { mutate: submitOnboardingMutation, isPending } = useUpdateUser();
+  const { mutateAsync: submitOnboardingMutation, isPending } = useUpdateUser();
 
-  const submitOnboarding = () => {
+  const submitOnboarding = async () => {
     try {
-      submitOnboardingMutation({
+      const updatedUser = await submitOnboardingMutation({
         id: user!.id,
         birthDate: onboardingData.birthdayDate?.toISOString(),
         postalCode: onboardingData.postalCode,
@@ -67,8 +68,13 @@ export function OnboardingProcessProvider({
         howDidYouFindUs: onboardingData.howDidYouFindUs,
         onboardingCompletedAt: new Date().toISOString(),
       });
+      // Update the user context with the response immediately
+      updateUser(updatedUser);
       toast.success("Onboarding completat correctament");
-      router.push("/home");
+      // Small delay to ensure toast displays before navigation
+      setTimeout(() => {
+        router.push("/");
+      }, 100);
     } catch (error: unknown) {
       console.error(error);
       toast.error("Error al completar la creació del teu compte", {

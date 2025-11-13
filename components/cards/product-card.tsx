@@ -62,7 +62,8 @@ export function ProductCard({ product }: ProductCardProps) {
       );
 
       if (response.url) {
-        window.location.href = response.url;
+        window.open(response.url, "_blank");
+        setIsLoading(false);
       }
     } catch (error) {
       console.error("Error initiating checkout:", error);

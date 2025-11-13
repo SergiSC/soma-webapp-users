@@ -16,6 +16,7 @@ import { OnboardingProcessProvider } from "@/components/onboarding-process/conte
 export interface UserContextType {
   user: User | null;
   logout: () => void;
+  updateUser: (user: User) => void;
 }
 
 export const UserContext = createContext<UserContextType | null>(null);
@@ -49,7 +50,7 @@ export function UserProvider({ children }: UserProviderProps) {
         loginUser({
           email: auth0User?.email || "",
           externalId: auth0User?.sub || "",
-          emailVerified: auth0User?.emailVerified || false,
+          emailVerified: auth0User?.email_verified ?? false,
         });
       } catch {
         toast.error("No s'ha pogut iniciar la sessió");
@@ -60,6 +61,16 @@ export function UserProvider({ children }: UserProviderProps) {
       getToken();
     }
   }, [auth0User, loginUser]);
+
+  const FinalComponent = useMemo(() => {
+    return isSuccess && userData?.onboardingCompletedAt == null ? (
+      <OnboardingProcessProvider>
+        <OnboardingProcess />
+      </OnboardingProcessProvider>
+    ) : (
+      children
+    );
+  }, [isSuccess, children, userData]);
 
   const useMemoProjectSomaLogo = useMemo(() => {
     return (
@@ -116,15 +127,10 @@ export function UserProvider({ children }: UserProviderProps) {
               returnTo: window.location.origin,
             },
           }),
+        updateUser: setUserData,
       }}
     >
-      {isSuccess && userData?.onboardingCompletedAt == null ? (
-        <OnboardingProcessProvider>
-          <OnboardingProcess />
-        </OnboardingProcessProvider>
-      ) : (
-        children
-      )}
+      {FinalComponent}
     </UserContext.Provider>
   );
 }
