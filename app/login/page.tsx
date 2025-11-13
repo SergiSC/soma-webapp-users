@@ -7,6 +7,7 @@ import { Spinner } from "@/components/ui/spinner";
 
 export default function AuthenticatePage() {
   const { loginWithRedirect, getAccessTokenSilently } = useAuth0();
+
   const searchParams = useSearchParams();
 
   useEffect(() => {
