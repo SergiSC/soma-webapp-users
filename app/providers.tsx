@@ -22,7 +22,7 @@ export function Providers({ children, auth0Config }: ProvidersProps) {
         authorizationParams={{
           redirect_uri:
             typeof window !== "undefined"
-              ? `${window.location.origin}/login`
+              ? `${window.location.origin}/callback`
               : undefined,
         }}
         useRefreshTokens={true}
