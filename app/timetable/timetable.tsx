@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useMemo, useRef, useEffect, useCallback } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDailySessions } from "@/hooks/api/daily-sessions";
@@ -24,13 +25,63 @@ const CATALAN_MONTHS = [
 
 const CATALAN_WEEKDAYS = ["Dl", "Dt", "Dc", "Dj", "Dv", "Ds", "Dg"];
 
+// Helper function to format date as YYYY-MM-DD in local timezone (not UTC)
+const formatDateLocal = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export function Timetable() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const today = useMemo(() => new Date(), []);
-  const [currentMonth, setCurrentMonth] = useState(
-    new Date(today.getFullYear(), today.getMonth(), 1)
-  );
-  const [selectedDate, setSelectedDate] = useState<Date>(today);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Get date from URL query params or default to today
+  const selectedDate = useMemo(() => {
+    const dateParam = searchParams.get("date");
+    if (dateParam) {
+      // Parse YYYY-MM-DD format in local timezone
+      const [year, month, day] = dateParam.split("-").map(Number);
+      if (year && month && day) {
+        const parsedDate = new Date(year, month - 1, day);
+        if (!isNaN(parsedDate.getTime())) {
+          return parsedDate;
+        }
+      }
+    }
+    return today;
+  }, [searchParams, today]);
+
+  const currentMonth = useMemo(
+    () => new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1),
+    [selectedDate]
+  );
+
+  // Update URL when selectedDate changes
+  const updateUrlDate = useCallback(
+    (date: Date) => {
+      const dateString = formatDateLocal(date);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("date", dateString);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [router, pathname, searchParams]
+  );
+
+  // Initialize URL with today's date if no date parameter exists
+  useEffect(() => {
+    const dateParam = searchParams.get("date");
+    if (!dateParam) {
+      const todayString = formatDateLocal(today);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("date", todayString);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }
+  }, [pathname, router, searchParams, today]);
 
   const { data: sessions, isLoading } = useDailySessions({
     date: selectedDate,
@@ -62,7 +113,6 @@ export function Timetable() {
       currentMonth.getMonth() - 1,
       1
     );
-    setCurrentMonth(newMonth);
     // Reset selected date to first available day of new month
     const year = newMonth.getFullYear();
     const month = newMonth.getMonth();
@@ -70,7 +120,8 @@ export function Timetable() {
       year === today.getFullYear() && month === today.getMonth()
         ? today.getDate()
         : 1;
-    setSelectedDate(new Date(year, month, firstAvailableDay));
+    const newDate = new Date(year, month, firstAvailableDay);
+    updateUrlDate(newDate);
   };
 
   const handleNextMonth = () => {
@@ -79,7 +130,6 @@ export function Timetable() {
       currentMonth.getMonth() + 1,
       1
     );
-    setCurrentMonth(newMonth);
     // Reset selected date to first available day of new month
     const year = newMonth.getFullYear();
     const month = newMonth.getMonth();
@@ -87,7 +137,8 @@ export function Timetable() {
       year === today.getFullYear() && month === today.getMonth()
         ? today.getDate()
         : 1;
-    setSelectedDate(new Date(year, month, firstAvailableDay));
+    const newDate = new Date(year, month, firstAvailableDay);
+    updateUrlDate(newDate);
   };
 
   const formatMonthYear = (date: Date) => {
@@ -189,7 +240,7 @@ export function Timetable() {
               key={day.toISOString()}
               data-date={day.toISOString()}
               variant={isSelected(day) ? "default" : "outline"}
-              onClick={() => setSelectedDate(day)}
+              onClick={() => updateUrlDate(day)}
               className={cn(
                 "min-w-[50px] flex flex-col gap-1 h-auto py-2 px-3",
                 isToday(day) && !isSelected(day) && "border-2 border-primary"

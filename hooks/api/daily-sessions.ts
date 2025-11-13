@@ -67,14 +67,21 @@ export interface UseDailySessionsOptions {
   enabled?: boolean;
 }
 
+// Helper function to format date as YYYY-MM-DD in local timezone (not UTC)
+const formatDateLocal = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export function useDailySessions({
   date,
   filters,
   enabled = true,
 }: UseDailySessionsOptions) {
-  // Convert Date to YYYY-MM-DD format if needed
-  const dateString =
-    date instanceof Date ? date.toISOString().split("T")[0] : date;
+  // Convert Date to YYYY-MM-DD format if needed (using local timezone)
+  const dateString = date instanceof Date ? formatDateLocal(date) : date;
 
   return useQuery({
     queryKey: ["daily-sessions", dateString, filters],
