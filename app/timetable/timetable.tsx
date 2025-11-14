@@ -47,7 +47,8 @@ export function Timetable() {
       // Parse YYYY-MM-DD format in local timezone
       const [year, month, day] = dateParam.split("-").map(Number);
       if (year && month && day) {
-        const parsedDate = new Date(year, month - 1, day);
+        // Create date at noon local time to avoid DST/timezone edge cases
+        const parsedDate = new Date(year, month - 1, day, 12, 0, 0);
         if (!isNaN(parsedDate.getTime())) {
           return parsedDate;
         }
@@ -57,7 +58,15 @@ export function Timetable() {
   }, [searchParams, today]);
 
   const currentMonth = useMemo(
-    () => new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1),
+    () =>
+      new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        1,
+        12,
+        0,
+        0
+      ),
     [selectedDate]
   );
 
@@ -91,7 +100,7 @@ export function Timetable() {
   const daysInMonth = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    const lastDay = new Date(year, month + 1, 0);
+    const lastDay = new Date(year, month + 1, 0, 12, 0, 0);
     const days: Date[] = [];
 
     // If it's the current month, start from today
@@ -101,7 +110,9 @@ export function Timetable() {
         : 1;
 
     for (let day = startDate; day <= lastDay.getDate(); day++) {
-      days.push(new Date(year, month, day));
+      // Create date at noon local time to avoid DST/timezone edge cases
+      const date = new Date(year, month, day, 12, 0, 0);
+      days.push(date);
     }
 
     return days;
@@ -111,7 +122,10 @@ export function Timetable() {
     const newMonth = new Date(
       currentMonth.getFullYear(),
       currentMonth.getMonth() - 1,
-      1
+      1,
+      12,
+      0,
+      0
     );
     // Reset selected date to first available day of new month
     const year = newMonth.getFullYear();
@@ -120,7 +134,7 @@ export function Timetable() {
       year === today.getFullYear() && month === today.getMonth()
         ? today.getDate()
         : 1;
-    const newDate = new Date(year, month, firstAvailableDay);
+    const newDate = new Date(year, month, firstAvailableDay, 12, 0, 0);
     updateUrlDate(newDate);
   };
 
@@ -128,7 +142,10 @@ export function Timetable() {
     const newMonth = new Date(
       currentMonth.getFullYear(),
       currentMonth.getMonth() + 1,
-      1
+      1,
+      12,
+      0,
+      0
     );
     // Reset selected date to first available day of new month
     const year = newMonth.getFullYear();
@@ -137,7 +154,7 @@ export function Timetable() {
       year === today.getFullYear() && month === today.getMonth()
         ? today.getDate()
         : 1;
-    const newDate = new Date(year, month, firstAvailableDay);
+    const newDate = new Date(year, month, firstAvailableDay, 12, 0, 0);
     updateUrlDate(newDate);
   };
 
@@ -171,9 +188,19 @@ export function Timetable() {
     const previousMonth = new Date(
       currentMonth.getFullYear(),
       currentMonth.getMonth() - 1,
-      1
+      1,
+      12,
+      0,
+      0
     );
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      1,
+      12,
+      0,
+      0
+    );
     return previousMonth < todayStart;
   }, [currentMonth, today]);
 
@@ -183,7 +210,7 @@ export function Timetable() {
 
     const container = scrollContainerRef.current;
     const selectedButton = container.querySelector(
-      `[data-date="${selectedDate.toISOString()}"]`
+      `[data-date="${formatDateLocal(selectedDate)}"]`
     ) as HTMLElement;
 
     if (selectedButton) {
@@ -237,8 +264,8 @@ export function Timetable() {
         >
           {daysInMonth.map((day) => (
             <Button
-              key={day.toISOString()}
-              data-date={day.toISOString()}
+              key={formatDateLocal(day)}
+              data-date={formatDateLocal(day)}
               variant={isSelected(day) ? "default" : "outline"}
               onClick={() => updateUrlDate(day)}
               className={cn(
@@ -247,7 +274,7 @@ export function Timetable() {
               )}
             >
               <span className="text-xs text-muted-foreground">
-                {CATALAN_WEEKDAYS[day.getDay()]}
+                {CATALAN_WEEKDAYS[(day.getDay() + 6) % 7]}
               </span>
               <span className="text-base font-semibold">{formatDay(day)}</span>
             </Button>
