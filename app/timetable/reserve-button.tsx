@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  useCanMakeReservation,
   useCreateReservationFromComboSubscription,
   useCreateReservationFromPack,
   useCreateReservationFromSubscription,
@@ -42,8 +43,14 @@ export function ReserveButton({
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { canMakeReservation, canUseSubscription, canUsePack } = useMemo((): {
-    canMakeReservation: boolean;
+  // Call the backend to check if user can make reservation
+  const {
+    data: canMakeReservationData,
+    isLoading: isLoadingCanMakeReservation,
+  } = useCanMakeReservation(userInfo?.id, session.id);
+
+  // Keep the client-side logic for determining which subscription/pack to use
+  const { canUseSubscription, canUsePack } = useMemo((): {
     canUseSubscription?: Subscription;
     canUsePack?: Pack;
   } => {
@@ -63,7 +70,6 @@ export function ReserveButton({
                 ).length ?? 0) < subscription.product.recurring.amountPerWeek
               ) {
                 return {
-                  canMakeReservation: true,
                   canUseSubscription: subscription,
                 };
               }
@@ -82,7 +88,6 @@ export function ReserveButton({
                 subscription.product.recurring.amountReformerPerWeek
               ) {
                 return {
-                  canMakeReservation: true,
                   canUseSubscription: subscription,
                 };
               }
@@ -108,7 +113,6 @@ export function ReserveButton({
                 ).length ?? 0) < (pack?.remainingSessions ?? 0)
               ) {
                 return {
-                  canMakeReservation: true,
                   canUsePack: pack,
                 };
               }
@@ -129,7 +133,6 @@ export function ReserveButton({
                 ).length ?? 0) < subscription.product.recurring.amountPerWeek
               ) {
                 return {
-                  canMakeReservation: true,
                   canUseSubscription: subscription,
                 };
               }
@@ -147,7 +150,6 @@ export function ReserveButton({
                 subscription.product.recurring.amountOtherPerWeek
               ) {
                 return {
-                  canMakeReservation: true,
                   canUseSubscription: subscription,
                 };
               }
@@ -161,7 +163,6 @@ export function ReserveButton({
             );
             if ((pack?.remainingSessions ?? 0) > 0) {
               return {
-                canMakeReservation: true,
                 canUsePack: pack,
               };
             }
@@ -170,27 +171,37 @@ export function ReserveButton({
       }
     }
     return {
-      canMakeReservation: false,
       canUseSubscription: undefined,
       canUsePack: undefined,
     };
   }, [subscription, session, packs, currentWeekSubscriptionReservations]);
 
+  // Use the backend response to determine if reservation can be made
+  const canMakeReservation =
+    canMakeReservationData?.canMakeReservation ?? false;
+
+  const errorMessage = canMakeReservationData?.reasonCannotMakeReservation;
+  const buttonText = isLoadingCanMakeReservation
+    ? "Comprovant..."
+    : canMakeReservation
+    ? session.isFull || canMakeReservationData?.isRoomAtFullCapacity
+      ? "Llista d'espera"
+      : "Reservar"
+    : errorMessage;
+
   return (
     <>
-      <Button
-        variant={canMakeReservation ? "default" : "outline"}
-        disabled={!canMakeReservation}
-        size="sm"
-        className="mt-auto"
-        onClick={() => setIsDialogOpen(true)}
-      >
-        {canMakeReservation
-          ? session.isFull
-            ? "Llista d'espera"
-            : "Reservar"
-          : "No tens subscrpición o pack disponible"}
-      </Button>
+      <div className="flex flex-col items-center gap-1">
+        <Button
+          variant={canMakeReservation ? "default" : "outline"}
+          disabled={!canMakeReservation || isLoadingCanMakeReservation}
+          size="sm"
+          onClick={() => setIsDialogOpen(true)}
+          className="w-full"
+        >
+          {buttonText}
+        </Button>
+      </div>
       <AcceptOrRejectReservationDialog
         userId={userInfo?.id ?? ""}
         session={session}
