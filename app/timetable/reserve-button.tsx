@@ -54,121 +54,118 @@ export function ReserveButton({
     canUseSubscription?: Subscription;
     canUsePack?: Pack;
   } => {
-    if (subscription?.isValid) {
-      switch (session.type) {
-        // reformer
-        case SessionTypeEnum.PILATES_REFORMER:
-          if (
-            subscription.product.recurring?.type ===
-            ProductTypeEnum.SUBSCRIPTION
-          ) {
-            if (subscription.product.recurring.includesReformer) {
-              if (
-                (currentWeekSubscriptionReservations?.filter(
-                  (reservation) =>
-                    reservation.sessionType === SessionTypeEnum.PILATES_REFORMER
-                ).length ?? 0) < subscription.product.recurring.amountPerWeek
-              ) {
-                return {
-                  canUseSubscription: subscription,
-                };
-              }
+    switch (session.type) {
+      // reformer
+      case SessionTypeEnum.PILATES_REFORMER:
+        if (
+          subscription?.isValid &&
+          subscription.product.recurring?.type === ProductTypeEnum.SUBSCRIPTION
+        ) {
+          if (subscription.product.recurring.includesReformer) {
+            if (
+              (currentWeekSubscriptionReservations?.filter(
+                (reservation) =>
+                  reservation.sessionType === SessionTypeEnum.PILATES_REFORMER
+              ).length ?? 0) < subscription.product.recurring.amountPerWeek
+            ) {
+              return {
+                canUseSubscription: subscription,
+              };
             }
           }
-          if (
-            subscription.product.recurring?.type ===
+        }
+        if (
+          subscription?.isValid &&
+          subscription.product.recurring?.type ===
             ProductTypeEnum.SUBSCRIPTION_COMBO
-          ) {
-            if (subscription.product.recurring.amountReformerPerWeek > 0) {
-              if (
-                (currentWeekSubscriptionReservations?.filter(
-                  (reservation) =>
-                    reservation.sessionType === SessionTypeEnum.PILATES_REFORMER
-                ).length ?? 0) <
-                subscription.product.recurring.amountReformerPerWeek
-              ) {
-                return {
-                  canUseSubscription: subscription,
-                };
-              }
+        ) {
+          if (subscription.product.recurring.amountReformerPerWeek > 0) {
+            if (
+              (currentWeekSubscriptionReservations?.filter(
+                (reservation) =>
+                  reservation.sessionType === SessionTypeEnum.PILATES_REFORMER
+              ).length ?? 0) <
+              subscription.product.recurring.amountReformerPerWeek
+            ) {
+              return {
+                canUseSubscription: subscription,
+              };
             }
           }
-          if (
-            packs?.some(
-              (pack) =>
-                pack.product.recurring?.type === ProductTypeEnum.PACK &&
-                pack.product.recurring.includesReformer
-            )
-          ) {
-            const pack = packs?.find(
-              (pack) =>
-                pack.product.recurring?.type === ProductTypeEnum.PACK &&
-                pack.product.recurring.includesReformer
-            );
-            if ((pack?.remainingSessions ?? 0) > 0) {
-              if (
-                (currentWeekSubscriptionReservations?.filter(
-                  (reservation) =>
-                    reservation.sessionType === SessionTypeEnum.PILATES_REFORMER
-                ).length ?? 0) < (pack?.remainingSessions ?? 0)
-              ) {
-                return {
-                  canUsePack: pack,
-                };
-              }
-            }
-          }
-          break;
-
-        // other
-        default:
-          if (
-            subscription.product.recurring?.type ===
-            ProductTypeEnum.SUBSCRIPTION
-          ) {
-            if (!subscription.product.recurring.includesReformer) {
-              if (
-                (currentWeekSubscriptionReservations?.filter(
-                  (reservation) => reservation.sessionType === session.type
-                ).length ?? 0) < subscription.product.recurring.amountPerWeek
-              ) {
-                return {
-                  canUseSubscription: subscription,
-                };
-              }
-            }
-          }
-          if (
-            subscription.product.recurring?.type ===
-            ProductTypeEnum.SUBSCRIPTION_COMBO
-          ) {
-            if (subscription.product.recurring.amountOtherPerWeek > 0) {
-              if (
-                (currentWeekSubscriptionReservations?.filter(
-                  (reservation) => reservation.sessionType === session.type
-                ).length ?? 0) <
-                subscription.product.recurring.amountOtherPerWeek
-              ) {
-                return {
-                  canUseSubscription: subscription,
-                };
-              }
-            }
-          }
-          if (
-            packs?.some((pack) => !pack.product.recurring?.includesReformer)
-          ) {
-            const pack = packs?.find(
-              (pack) => !pack.product.recurring?.includesReformer
-            );
-            if ((pack?.remainingSessions ?? 0) > 0) {
+        }
+        if (
+          packs?.some(
+            (pack) =>
+              pack.product.recurring?.type === ProductTypeEnum.PACK &&
+              pack.product.recurring.includesReformer
+          )
+        ) {
+          const pack = packs?.find(
+            (pack) =>
+              pack.product.recurring?.type === ProductTypeEnum.PACK &&
+              pack.product.recurring.includesReformer
+          );
+          if ((pack?.remainingSessions ?? 0) > 0) {
+            if (
+              (currentWeekSubscriptionReservations?.filter(
+                (reservation) =>
+                  reservation.sessionType === SessionTypeEnum.PILATES_REFORMER
+              ).length ?? 0) < (pack?.remainingSessions ?? 0)
+            ) {
               return {
                 canUsePack: pack,
               };
             }
           }
-          break;
-      }
+        }
+        break;
+
+      // other
+      default:
+        if (
+          subscription?.isValid &&
+          subscription.product.recurring?.type === ProductTypeEnum.SUBSCRIPTION
+        ) {
+          if (!subscription.product.recurring.includesReformer) {
+            if (
+              (currentWeekSubscriptionReservations?.filter(
+                (reservation) => reservation.sessionType === session.type
+              ).length ?? 0) < subscription.product.recurring.amountPerWeek
+            ) {
+              return {
+                canUseSubscription: subscription,
+              };
+            }
+          }
+        }
+        if (
+          subscription?.isValid &&
+          subscription.product.recurring?.type ===
+            ProductTypeEnum.SUBSCRIPTION_COMBO
+        ) {
+          if (subscription.product.recurring.amountOtherPerWeek > 0) {
+            if (
+              (currentWeekSubscriptionReservations?.filter(
+                (reservation) => reservation.sessionType === session.type
+              ).length ?? 0) < subscription.product.recurring.amountOtherPerWeek
+            ) {
+              return {
+                canUseSubscription: subscription,
+              };
+            }
+          }
+        }
+        if (packs?.some((pack) => !pack.product.recurring?.includesReformer)) {
+          const pack = packs?.find(
+            (pack) => !pack.product.recurring?.includesReformer
+          );
+          if ((pack?.remainingSessions ?? 0) > 0) {
+            return {
+              canUsePack: pack,
+            };
+          }
+        }
+        break;
     }
     return {
       canUseSubscription: undefined,
