@@ -44,9 +44,7 @@ const productsApi = {
   }) => {
     const params = new URLSearchParams();
 
-    if (filters?.active !== undefined) {
-      params.append("active", String(filters.active));
-    }
+    params.append("active", "true");
 
     if (filters?.type) {
       const types = Array.isArray(filters.type) ? filters.type : [filters.type];
