@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -61,17 +62,10 @@ export function ReserveButton({
           subscription?.isValid &&
           subscription.product.recurring?.type === ProductTypeEnum.SUBSCRIPTION
         ) {
-          if (subscription.product.recurring.includesReformer) {
-            if (
-              (currentWeekSubscriptionReservations?.filter(
-                (reservation) =>
-                  reservation.sessionType === SessionTypeEnum.PILATES_REFORMER
-              ).length ?? 0) < subscription.product.recurring.amountPerWeek
-            ) {
-              return {
-                canUseSubscription: subscription,
-              };
-            }
+          {
+            return {
+              canUseSubscription: subscription,
+            };
           }
         }
         if (
@@ -79,19 +73,9 @@ export function ReserveButton({
           subscription.product.recurring?.type ===
             ProductTypeEnum.SUBSCRIPTION_COMBO
         ) {
-          if (subscription.product.recurring.amountReformerPerWeek > 0) {
-            if (
-              (currentWeekSubscriptionReservations?.filter(
-                (reservation) =>
-                  reservation.sessionType === SessionTypeEnum.PILATES_REFORMER
-              ).length ?? 0) <
-              subscription.product.recurring.amountReformerPerWeek
-            ) {
-              return {
-                canUseSubscription: subscription,
-              };
-            }
-          }
+          return {
+            canUseSubscription: subscription,
+          };
         }
         if (
           packs?.some(
@@ -127,15 +111,9 @@ export function ReserveButton({
           subscription.product.recurring?.type === ProductTypeEnum.SUBSCRIPTION
         ) {
           if (!subscription.product.recurring.includesReformer) {
-            if (
-              (currentWeekSubscriptionReservations?.filter(
-                (reservation) => reservation.sessionType === session.type
-              ).length ?? 0) < subscription.product.recurring.amountPerWeek
-            ) {
-              return {
-                canUseSubscription: subscription,
-              };
-            }
+            return {
+              canUseSubscription: subscription,
+            };
           }
         }
         if (
@@ -144,15 +122,9 @@ export function ReserveButton({
             ProductTypeEnum.SUBSCRIPTION_COMBO
         ) {
           if (subscription.product.recurring.amountOtherPerWeek > 0) {
-            if (
-              (currentWeekSubscriptionReservations?.filter(
-                (reservation) => reservation.sessionType === session.type
-              ).length ?? 0) < subscription.product.recurring.amountOtherPerWeek
-            ) {
-              return {
-                canUseSubscription: subscription,
-              };
-            }
+            return {
+              canUseSubscription: subscription,
+            };
           }
         }
         if (packs?.some((pack) => !pack.product.recurring?.includesReformer)) {
@@ -251,7 +223,6 @@ function AcceptOrRejectReservationDialog({
   setIsDialogOpen,
   closeAllDialogs,
 }: MakeReservationProps) {
-  console.log("AAAA", userId, session, canUseSubscription, canUsePack);
   const sessionTypeLabel = sessionTypeToLabelCatalan[session.type];
 
   const {
@@ -305,11 +276,11 @@ function AcceptOrRejectReservationDialog({
           <DialogTitle className="text-start">
             Vols fer una reserva per la classe de {sessionTypeLabel}?
           </DialogTitle>
+          <DialogDescription>
+            En cas que es vulgui cancel·lar la classe, caldrà fer-ho com a mínim
+            3 hores abans de l&apos;inici. En cas contrari, la classe es perdrà.
+          </DialogDescription>
         </DialogHeader>
-        <p className="text-sm text-muted-foreground">
-          En cas que es vulgui cancel·lar la classe, caldrà fer-ho com a mínim 3
-          hores abans de l&apos;inici. En cas contrari, la classe es perdrà.
-        </p>
         <div className="flex gap-2 w-full justify-between">
           <Button variant="outline" onClick={onReject}>
             Rebutar
