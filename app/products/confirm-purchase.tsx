@@ -3,23 +3,27 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  Dialog,
+  DialogContent,
 } from "@/components/ui/dialog";
 import { Product, ProductTypeEnum } from "@/hooks/api/products";
-import { Dialog, DialogContent } from "@radix-ui/react-dialog";
 
 const labels: Record<ProductTypeEnum, string[]> = {
   [ProductTypeEnum.SUBSCRIPTION]: [
-    "Subscripció Mensual. L'inici de la subscripció serà el dia de la compra.",
+    "Subscripció Mensual.",
+    "L'inici de la subscripció serà el dia de la compra.",
     "Totes les classes tenen una durada de 50 minuts.",
     "En cas que es vulgui cancel·lar la subscripció, caldrà fer-ho com a mínim de 10 dies abans del pròxim pagament.",
   ],
   [ProductTypeEnum.PACK]: [
-    "Pack de Classe(s). Les classes incloses es podran utilitzar quan vulguis.",
+    "Pack de Classe(s).",
+    "Les classes incloses es podran utilitzar quan vulguis.",
     "Totes les classes tenen una durada de 50 minuts.",
     "Un cop abonat el pack, no es retornaran els diners.",
   ],
   [ProductTypeEnum.SUBSCRIPTION_COMBO]: [
-    "Subscripció Premium. L'inici de la subscripció serà el dia de la compra.",
+    "Subscripció Premium.",
+    "L'inici de la subscripció serà el dia de la compra.",
     "Totes les classes tenen una durada de 50 minuts.",
     "En cas que es vulgui cancel·lar la subscripció, caldrà fer-ho com a mínim de 10 dies abans del pròxim pagament.",
   ],
@@ -43,7 +47,7 @@ export function PurchaseOrRejectproductDialog({
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent>
-        <DialogHeader>
+        <DialogHeader className="text-start">
           <DialogTitle>Informació important</DialogTitle>
           <DialogDescription>
             Informació rellevant sobre la compra del producte
@@ -51,7 +55,10 @@ export function PurchaseOrRejectproductDialog({
         </DialogHeader>
         <ul>
           {labels[product.recurring.type].map((label, index) => (
-            <li className="text-sm text-muted-foreground" key={index}>
+            <li
+              className="text-sm text-muted-foreground list-disc list-inside"
+              key={index}
+            >
               {label}
             </li>
           ))}
