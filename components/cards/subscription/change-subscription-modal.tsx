@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useProducts } from "@/hooks/api/products";
+import { ProductTypeEnum, useProducts } from "@/hooks/api/products";
 import { Label } from "@radix-ui/react-label";
 
 interface ChangeSubscriptionModalProps {
@@ -32,7 +32,9 @@ export function ChangeSubscriptionModal({
   onClose,
   onConfirm,
 }: ChangeSubscriptionModalProps) {
-  const { data: products } = useProducts();
+  const { data: products } = useProducts({
+    type: [ProductTypeEnum.SUBSCRIPTION, ProductTypeEnum.SUBSCRIPTION_COMBO],
+  });
 
   const originalProduct = products?.items.find(
     (product) => product.id === originalProductId
