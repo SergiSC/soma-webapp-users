@@ -15,6 +15,7 @@ import { useState } from "react";
 import { Spinner } from "../ui/spinner";
 import { ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PurchaseOrRejectproductDialog } from "@/app/products/confirm-purchase";
 
 interface ProductCardProps {
   product: Product;
@@ -48,7 +49,8 @@ const productTypeColors: Record<
 export function ProductCard({ product }: ProductCardProps) {
   const { user } = useUser();
   const [isLoading, setIsLoading] = useState(false);
-
+  const [url, setUrl] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const productType = product.recurring.type;
   const colors = productTypeColors[productType];
 
@@ -62,17 +64,14 @@ export function ProductCard({ product }: ProductCardProps) {
       );
 
       if (response.url) {
-        window.location.href = response.url;
+        setUrl(response.url);
+        setIsDialogOpen(true);
         setIsLoading(false);
       }
     } catch (error) {
       console.error("Error initiating checkout:", error);
       setIsLoading(false);
     }
-  };
-
-  const formatPrice = (cents: number) => {
-    return (cents / 100).toFixed(2).replace(".", ",") + " €";
   };
 
   const getProductTypeLabel = () => {
@@ -165,99 +164,112 @@ export function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <Card
-      className={cn(
-        "border-l-4 hover:shadow-md transition-all",
-        colors.bg,
-        colors.text
-      )}
-      style={{ borderLeftColor: colors.border }}
-    >
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div className="flex-1">
-            <CardTitle className={cn("text-lg font-bold", colors.text)}>
-              {product.name}
-            </CardTitle>
-            <div className="sm:hidden mb-2">
-              <p className={"text-2xl font-bold text-foreground"}>
-                {formatPrice(product.price)}
+    <>
+      <Card
+        className={cn(
+          "border-l-4 hover:shadow-md transition-all",
+          colors.bg,
+          colors.text
+        )}
+        style={{ borderLeftColor: colors.border }}
+      >
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1">
+              <CardTitle className={cn("text-lg font-bold", colors.text)}>
+                {product.name}
+              </CardTitle>
+              <div className="sm:hidden mb-2">
+                <p className={"text-2xl font-bold text-foreground"}>
+                  {product.stringifiedPrice}
+                </p>
+              </div>
+              <CardDescription className="text-sm text-muted-foreground mb-1">
+                {product.description || getProductTypeDescription()}
+              </CardDescription>
+              <div className="mt-2">
+                <span
+                  className={cn(
+                    "text-xs font-semibold py-1 rounded",
+                    colors.text,
+                    colors.bg
+                  )}
+                >
+                  {getProductTypeLabel()}
+                </span>
+              </div>
+            </div>
+            <div className="hidden sm:block text-right shrink-0">
+              <p className={cn("text-2xl font-bold", colors.text)}>
+                {product.stringifiedPrice}
               </p>
             </div>
-            <CardDescription className="text-sm text-muted-foreground mb-1">
-              {product.description || getProductTypeDescription()}
-            </CardDescription>
-            <div className="mt-2">
-              <span
-                className={cn(
-                  "text-xs font-semibold py-1 rounded",
-                  colors.text,
-                  colors.bg
-                )}
-              >
-                {getProductTypeLabel()}
-              </span>
-            </div>
           </div>
-          <div className="hidden sm:block text-right shrink-0">
-            <p className={cn("text-2xl font-bold", colors.text)}>
-              {formatPrice(product.price)}
-            </p>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <div className="space-y-2">
+            {productDetails?.primary && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-foreground">
+                  {productDetails.primary.label}:
+                </span>
+                <span className={cn("text-sm font-bold", colors.text)}>
+                  {productDetails.primary.value}
+                </span>
+              </div>
+            )}
+            {productDetails?.secondary && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-foreground">
+                  {productDetails.secondary.label}:
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {productDetails.secondary.value}
+                </span>
+              </div>
+            )}
+            {productDetails?.tertiary && (
+              <div className="flex gap-2 whitespace-pre-line">
+                <span className="text-xs font-semibold text-foreground">
+                  {productDetails.tertiary.label}:
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {productDetails.tertiary.value}
+                </span>
+              </div>
+            )}
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <div className="space-y-2">
-          {productDetails?.primary && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-foreground">
-                {productDetails.primary.label}:
-              </span>
-              <span className={cn("text-sm font-bold", colors.text)}>
-                {productDetails.primary.value}
-              </span>
-            </div>
-          )}
-          {productDetails?.secondary && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-foreground">
-                {productDetails.secondary.label}:
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {productDetails.secondary.value}
-              </span>
-            </div>
-          )}
-          {productDetails?.tertiary && (
-            <div className="flex gap-2 whitespace-pre-line">
-              <span className="text-xs font-semibold text-foreground">
-                {productDetails.tertiary.label}:
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {productDetails.tertiary.value}
-              </span>
-            </div>
-          )}
-        </div>
-        <Button
-          onClick={handlePurchase}
-          disabled={isLoading || !user?.id}
-          className={cn("w-full", colors.button)}
-        >
-          {isLoading ? (
-            <>
-              <Spinner className="size-4" />
-              Processant...
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="size-4" />
-              Comprar ara
-            </>
-          )}
-        </Button>
-      </CardContent>
-    </Card>
+          <Button
+            onClick={handlePurchase}
+            disabled={isLoading || !user?.id}
+            className={cn("w-full", colors.button)}
+          >
+            {isLoading ? (
+              <>
+                <Spinner className="size-4" />
+                Processant...
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="size-4" />
+                Comprar ara
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+      {url && (
+        <PurchaseOrRejectproductDialog
+          product={product}
+          url={url}
+          onReject={() => {
+            setIsDialogOpen(false);
+          }}
+          isDialogOpen={isDialogOpen}
+          setIsDialogOpen={setIsDialogOpen}
+        />
+      )}
+    </>
   );
 }
 

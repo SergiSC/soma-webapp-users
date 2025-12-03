@@ -63,7 +63,9 @@ export interface Subscription {
   id: string;
   product: {
     id: string;
+    nextPeriodProduct: { id: string; name: string | null } | null;
     name: string;
+    stringifiedPrice: string;
     recurring: SubscriptionProductRecurring | null;
     currentWeekReservations: {
       status: ReservationStatus;

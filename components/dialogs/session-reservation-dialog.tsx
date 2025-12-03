@@ -84,6 +84,9 @@ export function SessionReservationDialog({
               </p>
             </div>
           </DialogTitle>
+          <DialogDescription>
+            Informació sobre la sessió i opcions de reserva
+          </DialogDescription>
         </DialogHeader>
 
         <p className="text-xs text-muted-foreground italic">

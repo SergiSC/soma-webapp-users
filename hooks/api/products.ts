@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { ProductTypeEnum, RecurringIntervalEnum } from "./user-information";
 
 export { ProductTypeEnum, RecurringIntervalEnum };
@@ -57,6 +57,13 @@ const productsApi = {
     );
   },
   get: (productId: string) => apiClient.get<Product>(`/products/${productId}`),
+  createCheckoutSession: (
+    productId: string,
+    userId: string
+  ): Promise<{ url: string }> =>
+    apiClient.get<{ url: string }>(
+      `/products/${productId}/users/${userId}/checkout`
+    ),
 };
 
 export function useProducts(filters?: {
@@ -76,5 +83,15 @@ export function useProduct(productId: string) {
     queryFn: () => productsApi.get(productId),
     enabled: !!productId,
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export function useCreateProductCheckoutSession(productId: string) {
+  return useMutation({
+    mutationFn: (userId?: string) =>
+      productsApi.createCheckoutSession(productId, userId ?? ""),
+    onError: (error) => {
+      console.error("Error creating checkout session:", error);
+    },
   });
 }

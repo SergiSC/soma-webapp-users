@@ -3,7 +3,7 @@ import {
   MyCompletedSessionsCard,
   MyNextSessionsCard,
 } from "@/components/cards/my-sessions.card";
-import { MySubscriptionCard } from "@/components/cards/my-subscription.card";
+import { MySubscriptionCard } from "@/components/cards/subscription/my-subscription.card";
 import { PageSkeleton } from "@/components/page-skeleton";
 
 export default function Home() {
