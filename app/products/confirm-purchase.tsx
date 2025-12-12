@@ -65,7 +65,7 @@ export function PurchaseOrRejectproductDialog({
         </ul>
         <div className="flex gap-2 w-full justify-between">
           <Button variant="outline" onClick={onReject}>
-            Rebutar
+            Rebutjar
           </Button>
           <Button
             onClick={() => {
