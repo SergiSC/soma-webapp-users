@@ -36,7 +36,9 @@ export function ChangeSubscriptionModal({
     type: [ProductTypeEnum.SUBSCRIPTION, ProductTypeEnum.SUBSCRIPTION_COMBO],
   });
 
-  const originalProduct = products?.items.find(
+  const existingProducts = Object.values(products?.items || {}).flat();
+
+  const originalProduct = existingProducts.find(
     (product) => product.id === originalProductId
   );
 
@@ -58,7 +60,7 @@ export function ChangeSubscriptionModal({
         </DialogDescription>
         <div className="flex flex-col gap-2 text-sm">
           <RadioGroup value={selectedProductId} onValueChange={onSelectProduct}>
-            {products?.items
+            {existingProducts
               .filter((product) => product.id !== originalProductId)
               .map((product) => (
                 <div key={product.id} className="flex items-center gap-2 ">

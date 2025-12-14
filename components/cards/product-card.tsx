@@ -8,7 +8,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Product, ProductTypeEnum } from "@/hooks/api/products";
+import { Product, ProductGroup, ProductTypeEnum } from "@/hooks/api/products";
 import { useUser } from "@/context/user-context";
 import { apiClient } from "@/lib/api";
 import { useState } from "react";
@@ -274,7 +274,7 @@ export function ProductCard({ product }: ProductCardProps) {
 }
 
 interface ProductCardsProps {
-  products?: Product[];
+  products?: Record<ProductGroup, Product[]>;
   isLoading?: boolean;
 }
 
@@ -291,7 +291,9 @@ export function ProductCards({ products, isLoading }: ProductCardsProps) {
     );
   }
 
-  if (!products || products.length === 0) {
+  const existingProducts = Object.values(products || {}).flat();
+
+  if (!products || existingProducts.length === 0) {
     return (
       <Card className="border-primary/20 pt-4">
         <CardContent className="flex flex-col gap-4">
@@ -305,9 +307,21 @@ export function ProductCards({ products, isLoading }: ProductCardsProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+      {Object.entries(products).map(([group, products]) => (
+        <div key={group} className="flex flex-col gap-4">
+          <h2 className="text-lg font-bold text-primary">
+            {productGroupLabels[group as ProductGroup]}
+          </h2>
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
       ))}
     </div>
   );
 }
+
+const productGroupLabels: Record<ProductGroup, string> = {
+  subscription: "Subscripcions",
+  pack: "Packs",
+};
