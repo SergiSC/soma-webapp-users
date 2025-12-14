@@ -69,7 +69,7 @@ export function PurchaseOrRejectproductDialog({
           </Button>
           <Button
             onClick={() => {
-              window.open(url + "?locale=es", "_blank");
+              window.open(url, "_blank");
               setIsDialogOpen(false);
             }}
           >
