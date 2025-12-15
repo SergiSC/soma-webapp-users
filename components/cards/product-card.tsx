@@ -16,6 +16,7 @@ import { Spinner } from "../ui/spinner";
 import { ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PurchaseOrRejectproductDialog } from "@/app/products/confirm-purchase";
+import { toast } from "sonner";
 
 interface ProductCardProps {
   product: Product;
@@ -68,8 +69,15 @@ export function ProductCard({ product }: ProductCardProps) {
         setIsDialogOpen(true);
         setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Error initiating checkout:", error);
+    } catch {
+      toast.warning("Ja tens una subscripció activa", {
+        description: `No pots comprar aquesta subscripció mentre tinguis una activa. Si
+              vols modificar la teva subscripció, pots fer-ho a la pantalla
+              'Inici', fent click en els tres punts a la dreta de la
+              teva subscripció.
+            `,
+        duration: 7000,
+      });
       setIsLoading(false);
     }
   };
