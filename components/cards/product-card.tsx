@@ -8,7 +8,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Product, ProductGroup, ProductTypeEnum } from "@/hooks/api/products";
+import { Product, ProductTypeEnum } from "@/hooks/api/products";
 import { useUser } from "@/context/user-context";
 import { apiClient } from "@/lib/api";
 import { useState } from "react";
@@ -282,7 +282,7 @@ export function ProductCard({ product }: ProductCardProps) {
 }
 
 interface ProductCardsProps {
-  products?: Record<ProductGroup, Product[]>;
+  products?: Record<ProductTypeEnum, Product[]>;
   isLoading?: boolean;
 }
 
@@ -318,7 +318,7 @@ export function ProductCards({ products, isLoading }: ProductCardsProps) {
       {Object.entries(products).map(([group, products]) => (
         <div key={group} className="flex flex-col gap-4">
           <h2 className="text-lg font-bold text-primary">
-            {productGroupLabels[group as ProductGroup]}
+            {productGroupLabels[group as ProductTypeEnum]}
           </h2>
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
@@ -329,7 +329,8 @@ export function ProductCards({ products, isLoading }: ProductCardsProps) {
   );
 }
 
-const productGroupLabels: Record<ProductGroup, string> = {
-  subscription: "Subscripcions",
-  pack: "Packs",
+const productGroupLabels: Record<ProductTypeEnum, string> = {
+  [ProductTypeEnum.SUBSCRIPTION]: "Subscripcions",
+  [ProductTypeEnum.PACK]: "Packs",
+  [ProductTypeEnum.SUBSCRIPTION_COMBO]: "Combos",
 };

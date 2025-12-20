@@ -25,10 +25,8 @@ export interface Product {
   recurring: ProductRecurring;
 }
 
-export type ProductGroup = "subscription" | "pack";
-
 export interface ProductListResponse {
-  items: Record<ProductGroup, Product[]>;
+  items: Record<ProductTypeEnum, Product[]>;
   total: number;
   page: number;
   perPage: number;
