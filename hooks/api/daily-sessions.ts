@@ -51,9 +51,8 @@ const dailySessionsApi = {
     if (filters?.teacherId) {
       params.append("teacherId", filters.teacherId);
     }
-    if (filters?.status) {
-      params.append("status", filters.status);
-    }
+
+    params.append("status", "published");
 
     return apiClient.get<DailySession[]>(
       `/sessions/daily?${params.toString()}`
