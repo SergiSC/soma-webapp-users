@@ -76,7 +76,7 @@ export function MySubscriptionCard() {
   const { isActive, isExpired, isCancelled } = useMemo(() => {
     return {
       isActive: subscription?.isValid ?? false,
-      isExpired: (subscription?.remainingDays ?? 0) <= 0,
+      isExpired: (subscription?.remainingDays ?? 0) < 0,
       isCancelled: subscription?.cancelledAt !== null,
     };
   }, [subscription]);
