@@ -10,6 +10,7 @@ interface ProvidersProps {
   auth0Config: {
     domain: string;
     clientId: string;
+    audience: string;
   };
 }
 
@@ -24,6 +25,7 @@ export function Providers({ children, auth0Config }: ProvidersProps) {
             typeof window !== "undefined"
               ? `${window.location.origin}/callback`
               : undefined,
+          audience: auth0Config.audience,
         }}
         useRefreshTokens={true}
         cacheLocation="localstorage"

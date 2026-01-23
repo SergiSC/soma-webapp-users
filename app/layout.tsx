@@ -23,8 +23,9 @@ export const metadata: Metadata = {
 };
 
 const auth0Config = {
-  domain: process.env.AUTH0_DOMAIN!,
-  clientId: process.env.AUTH0_CLIENT_ID!,
+  domain: process.env.NEXT_PUBLIC_AUTH0_DOMAIN!,
+  clientId: process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID!,
+  audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE!,
 };
 
 export default function RootLayout({

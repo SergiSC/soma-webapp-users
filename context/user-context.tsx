@@ -4,7 +4,7 @@ import { LogInButton } from "@/components/logInButton";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { useLoggedUser } from "@/hooks/api/users";
-import { User } from "@/lib/api";
+import { User, apiClient } from "@/lib/api";
 import { useAuth0 } from "@auth0/auth0-react";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -28,7 +28,7 @@ interface UserProviderProps {
 }
 
 export function UserProvider({ children }: UserProviderProps) {
-  const { user: auth0User, isLoading, logout, isAuthenticated } = useAuth0();
+  const { user: auth0User, isLoading, logout, isAuthenticated, getAccessTokenSilently } = useAuth0();
   const [userData, setUserData] = useState<User | null>(null);
   const {
     mutate: loginUser,
@@ -45,8 +45,10 @@ export function UserProvider({ children }: UserProviderProps) {
   });
 
   useEffect(() => {
-    const getToken = async () => {
+    const getTokenAndLogin = async () => {
       try {
+        const accessToken = await getAccessTokenSilently();
+        apiClient.setAuthToken(accessToken);
         loginUser({
           email: auth0User?.email || "",
           externalId: auth0User?.sub || "",
@@ -58,9 +60,9 @@ export function UserProvider({ children }: UserProviderProps) {
     };
 
     if (auth0User) {
-      getToken();
+      getTokenAndLogin();
     }
-  }, [auth0User, loginUser]);
+  }, [auth0User, loginUser, getAccessTokenSilently]);
 
   const FinalComponent = useMemo(() => {
     return isSuccess && userData?.onboardingCompletedAt == null ? (

@@ -4,8 +4,6 @@ import { HowDidYouFindUs } from "@/components/onboarding-process/context";
 const SOMA_API_BASE_URL =
   process.env.NEXT_PUBLIC_SOMA_API_URL || "http://localhost:3001";
 
-const AUTH0_CLIENT_ID = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID;
-
 // Custom error classes for better error handling
 export class ApiError extends Error {
   constructor(
@@ -13,7 +11,7 @@ export class ApiError extends Error {
     public status: number,
     public statusText: string,
     public endpoint: string,
-    public originalError?: Error
+    public originalError?: Error,
   ) {
     super(message);
     this.name = "ApiError";
@@ -21,7 +19,10 @@ export class ApiError extends Error {
 }
 
 export class NetworkError extends Error {
-  constructor(message: string, public originalError?: Error) {
+  constructor(
+    message: string,
+    public originalError?: Error,
+  ) {
     super(message);
     this.name = "NetworkError";
   }
@@ -44,12 +45,12 @@ interface RequestConfig extends RequestInit {
 // Response interceptor type
 type ResponseInterceptor<T = unknown> = (
   response: Response,
-  data: T
+  data: T,
 ) => T | Promise<T>;
 
 // Request interceptor type
 type RequestInterceptor = (
-  config: RequestInit
+  config: RequestInit,
 ) => RequestInit | Promise<RequestInit>;
 
 // Generic API client with enhanced error handling and features
@@ -60,6 +61,7 @@ class ApiClient {
   private defaultRetryDelay: number;
   private requestInterceptors: RequestInterceptor[] = [];
   private responseInterceptors: ResponseInterceptor[] = [];
+  private authToken: string | null = null;
 
   constructor(
     baseURL: string,
@@ -67,7 +69,7 @@ class ApiClient {
       timeout?: number;
       retries?: number;
       retryDelay?: number;
-    } = {}
+    } = {},
   ) {
     this.baseURL = baseURL;
     this.defaultTimeout = options.timeout || 10000; // 10 seconds
@@ -85,22 +87,19 @@ class ApiClient {
     this.responseInterceptors.push(interceptor);
   }
 
-  // Get authentication token (you can customize this based on your auth implementation)
+  // Set authentication token (called from Auth0 context)
+  setAuthToken(token: string | null): void {
+    this.authToken = token;
+  }
+
+  // Get authentication token
   private getAuthToken(): string | null {
-    if (typeof window !== "undefined") {
-      const key = `@@auth0spajs@@::${AUTH0_CLIENT_ID}::@@user@@`;
-      const data = localStorage.getItem(key) || sessionStorage.getItem(key);
-      if (data) {
-        const { id_token } = JSON.parse(data);
-        return id_token;
-      }
-    }
-    return null;
+    return this.authToken;
   }
 
   // Apply request interceptors
   private async applyRequestInterceptors(
-    config: RequestInit
+    config: RequestInit,
   ): Promise<RequestInit> {
     let processedConfig = config;
 
@@ -114,7 +113,7 @@ class ApiClient {
   // Apply response interceptors
   private async applyResponseInterceptors<T>(
     response: Response,
-    data: T
+    data: T,
   ): Promise<T> {
     let processedData: unknown = data;
 
@@ -142,7 +141,7 @@ class ApiClient {
   // Enhanced request method with timeout, retries, and better error handling
   private async request<T>(
     endpoint: string,
-    options: RequestConfig = {}
+    options: RequestConfig = {},
   ): Promise<T> {
     const {
       timeout = this.defaultTimeout,
@@ -210,7 +209,7 @@ class ApiClient {
             errorMessage,
             response.status,
             response.statusText,
-            endpoint
+            endpoint,
           );
         }
 
@@ -279,7 +278,7 @@ class ApiClient {
   async post<T>(
     endpoint: string,
     data?: Record<string, unknown>,
-    options?: RequestConfig
+    options?: RequestConfig,
   ): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
@@ -291,7 +290,7 @@ class ApiClient {
   async patch<T>(
     endpoint: string,
     data?: Record<string, unknown>,
-    options?: RequestConfig
+    options?: RequestConfig,
   ): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
