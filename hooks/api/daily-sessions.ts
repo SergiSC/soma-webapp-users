@@ -1,10 +1,11 @@
 import { apiClient } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-import { SessionTypeEnum, SessionStatus } from "./sessions";
+import { SessionTypeEnum, SessionStatus, SessionLevelEnum } from "./sessions";
 import { ReservationStatus } from "./user-information";
 
 export interface DailySession {
   id: string;
+  level: SessionLevelEnum;
   type: SessionTypeEnum;
   status: SessionStatus;
   day: string;
@@ -55,7 +56,7 @@ const dailySessionsApi = {
     params.append("status", "published");
 
     return apiClient.get<DailySession[]>(
-      `/sessions/daily?${params.toString()}`
+      `/sessions/daily?${params.toString()}`,
     );
   },
 };

@@ -1,11 +1,17 @@
 import { DailySession } from "@/hooks/api/daily-sessions";
-import { sessionTypeToLabel, sessionColorsRecord } from "@/hooks/api/sessions";
+import {
+  sessionTypeToLabel,
+  sessionColorsRecord,
+  sessionLevelToLabel,
+  SessionLevelEnum,
+} from "@/hooks/api/sessions";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
   ReservationStatus,
   useUserInformation,
 } from "@/hooks/api/user-information";
+import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { useMemo, useState } from "react";
 import { SessionReservationDialog } from "../dialogs/session-reservation-dialog";
@@ -31,21 +37,22 @@ export function SessionCard({ session, className }: SessionCardProps) {
 
   const sessionColor = sessionColorsRecord[session.type];
   const confirmedReservations = session.reservations.filter(
-    (reservation) => reservation.status === ReservationStatus.CONFIRMED
+    (reservation) => reservation.status === ReservationStatus.CONFIRMED,
   );
   const isFull = confirmedReservations.length === session.room?.capacity;
   const isAlmostFull = session.room?.capacity
     ? confirmedReservations.length >= Math.ceil(session.room.capacity * 0.8)
     : false;
   const waitingListReservations = session.reservations.filter(
-    (reservation) => reservation.status === ReservationStatus.WAITING_LIST
+    (reservation) => reservation.status === ReservationStatus.WAITING_LIST,
   );
+  console.log(session.level);
 
   return (
     <Card
       className={cn(
         "border-l-4 transition-all hover:shadow-md cursor-pointer bg-primary-foreground",
-        className
+        className,
       )}
       style={{ borderLeftColor: sessionColor }}
     >
@@ -74,15 +81,15 @@ export function SessionCard({ session, className }: SessionCardProps) {
                   isFull
                     ? "text-destructive"
                     : isAlmostFull
-                    ? "text-yellow-500"
-                    : "text-muted-foreground"
+                      ? "text-yellow-500"
+                      : "text-muted-foreground",
                 )}
               >
                 <span className="font-medium">Capacitat:</span>{" "}
                 {
                   session.reservations.filter(
                     (reservation) =>
-                      reservation.status === ReservationStatus.CONFIRMED
+                      reservation.status === ReservationStatus.CONFIRMED,
                   ).length
                 }
                 /{session.room?.capacity} places
@@ -93,6 +100,19 @@ export function SessionCard({ session, className }: SessionCardProps) {
               </p>
               <p className="text-xs text-muted-foreground">
                 <span className="font-medium">Sala:</span> {session.room?.name}
+              </p>
+
+              <p className="text-xs text-muted-foreground flex items-center gap-2">
+                <span className="font-medium">Nivell:</span>
+                <Badge
+                  variant={
+                    session.level === SessionLevelEnum.ADVANCED
+                      ? "levelAdvanced"
+                      : "levelNormal"
+                  }
+                >
+                  {sessionLevelToLabel[session.level]}
+                </Badge>
               </p>
             </div>
             <div className="flex flex-col space-between items-end">

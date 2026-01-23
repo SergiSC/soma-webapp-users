@@ -36,6 +36,16 @@ export enum SessionStatus {
   COMPLETED = "completed",
 }
 
+export enum SessionLevelEnum {
+  NORMAL = "normal",
+  ADVANCED = "advanced",
+}
+
+export const sessionLevelToLabel: Record<SessionLevelEnum, string> = {
+  [SessionLevelEnum.NORMAL]: "Normal",
+  [SessionLevelEnum.ADVANCED]: "Avançat",
+};
+
 // Event types
 export interface Session {
   id: string;
@@ -80,7 +90,7 @@ const sessionsApi = {
 
     const queryString = params.toString();
     return apiClient.get<Session[]>(
-      `/sessions${queryString ? `?${queryString}` : ""}`
+      `/sessions${queryString ? `?${queryString}` : ""}`,
     );
   },
 
@@ -172,6 +182,6 @@ export function useSessionsForWeek(weekStartDate: string) {
 
   return useSessionsForDateRange(
     weekStartDate,
-    weekEndDate.toISOString().split("T")[0]
+    weekEndDate.toISOString().split("T")[0],
   );
 }
