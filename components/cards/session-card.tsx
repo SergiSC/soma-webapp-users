@@ -101,7 +101,6 @@ export function SessionCard({ session, className }: SessionCardProps) {
               <p className="text-xs text-muted-foreground">
                 <span className="font-medium">Sala:</span> {session.room?.name}
               </p>
-
               <p className="text-xs text-muted-foreground flex items-center gap-2">
                 <span className="font-medium">Nivell:</span>
                 <Badge

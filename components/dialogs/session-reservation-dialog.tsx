@@ -3,6 +3,8 @@ import {
   sessionTypeToLabel,
   sessionColorsRecord,
   SessionTypeEnum,
+  sessionLevelToLabel,
+  SessionLevelEnum,
 } from "@/hooks/api/sessions";
 import { cn } from "@/lib/utils";
 import { ReservationStatus } from "@/hooks/api/user-information";
@@ -14,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ReserveButton } from "@/app/timetable/reserve-button";
+import { Badge } from "../ui/badge";
 
 interface SessionReservationDialogProps {
   session: DailySession;
@@ -56,14 +59,14 @@ export function SessionReservationDialog({
 
   const sessionColor = sessionColorsRecord[session.type];
   const confirmedReservations = session.reservations.filter(
-    (reservation) => reservation.status === ReservationStatus.CONFIRMED
+    (reservation) => reservation.status === ReservationStatus.CONFIRMED,
   );
   const isFull = confirmedReservations.length === session.room?.capacity;
   const isAlmostFull = session.room?.capacity
     ? confirmedReservations.length >= Math.ceil(session.room.capacity * 0.8)
     : false;
   const waitingListReservations = session.reservations.filter(
-    (reservation) => reservation.status === ReservationStatus.WAITING_LIST
+    (reservation) => reservation.status === ReservationStatus.WAITING_LIST,
   );
 
   return (
@@ -100,8 +103,8 @@ export function SessionReservationDialog({
               isFull
                 ? "text-destructive"
                 : isAlmostFull
-                ? "text-yellow-500"
-                : "text-muted-foreground"
+                  ? "text-yellow-500"
+                  : "text-muted-foreground",
             )}
           >
             <span className="font-medium">Capacitat:</span>{" "}
@@ -114,6 +117,18 @@ export function SessionReservationDialog({
           <p className="text-sm text-muted-foreground">
             <span className="font-medium">Sala:</span>{" "}
             {session.room?.name || "No assignada"}
+          </p>
+          <p className="text-sm text-muted-foreground flex items-center gap-2">
+            <span className="font-medium">Nivell:</span>{" "}
+            <Badge
+              variant={
+                session.level === SessionLevelEnum.ADVANCED
+                  ? "levelAdvanced"
+                  : "levelNormal"
+              }
+            >
+              {sessionLevelToLabel[session.level]}
+            </Badge>
           </p>
         </div>
         <div className="flex flex-col items-end space-y-3">
