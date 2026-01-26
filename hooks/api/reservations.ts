@@ -23,24 +23,36 @@ export interface Reservation {
   status: ReservationStatus;
   createdAt: string;
   updatedAt: string | null;
+  product: {
+    id: string;
+    name: string;
+  } | null;
+  packId: string | null;
+  subscriptionId: string | null;
 }
 
-export interface CreateReservationFromSubscriptionRequest
-  extends Record<string, unknown> {
+export interface CreateReservationFromSubscriptionRequest extends Record<
+  string,
+  unknown
+> {
   sessionId: string;
   userId: string;
   subscriptionId: string;
 }
 
-export interface CreateReservationFromPackRequest
-  extends Record<string, unknown> {
+export interface CreateReservationFromPackRequest extends Record<
+  string,
+  unknown
+> {
   sessionId: string;
   userId: string;
   packId: string;
 }
 
-export interface CreateReservationFromComboSubscriptionRequest
-  extends Record<string, unknown> {
+export interface CreateReservationFromComboSubscriptionRequest extends Record<
+  string,
+  unknown
+> {
   sessionId: string;
   userId: string;
   subscriptionId: string;
@@ -67,7 +79,7 @@ const reservationsApi = {
     apiClient.post<Reservation>("/reservations/from-pack", data),
 
   createFromComboSubscription: (
-    data: CreateReservationFromComboSubscriptionRequest
+    data: CreateReservationFromComboSubscriptionRequest,
   ) =>
     apiClient.post<Reservation>("/reservations/from-combo-subscription", data),
 
@@ -80,7 +92,7 @@ const reservationsApi = {
       sessionId: params.sessionId,
     });
     return apiClient.get<CanMakeReservationResponse>(
-      `/reservations/can-make-reservation?${queryParams.toString()}`
+      `/reservations/can-make-reservation?${queryParams.toString()}`,
     );
   },
 };
@@ -156,7 +168,7 @@ export function useCancelReservation() {
 
 export function useCanMakeReservation(
   userId: string | undefined,
-  sessionId: string | undefined
+  sessionId: string | undefined,
 ) {
   return useQuery({
     queryKey: ["can-make-reservation", userId, sessionId],
@@ -167,5 +179,43 @@ export function useCanMakeReservation(
       }),
     enabled: !!userId && !!sessionId,
     staleTime: 30 * 1000, // 30 seconds
+  });
+}
+
+export interface TakeAttendanceRequest {
+  sessionId: string;
+  attendeeUserIds: string[];
+  notAttendedUserIds: string[];
+}
+
+export interface TakeAttendanceResponse {
+  sessionId: string;
+  attendedReservations: number;
+  noShowReservations: number;
+}
+
+export function useTakeAttendance() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: TakeAttendanceRequest) => {
+      const body: Record<string, unknown> = {
+        sessionId: data.sessionId,
+        attendeeUserIds: data.attendeeUserIds,
+        notAttendedUserIds: data.notAttendedUserIds,
+      };
+      return apiClient.post<TakeAttendanceResponse>(
+        "/reservations/attendance",
+        body,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["daily-sessions"] });
+      toast.success("Assistència registrada correctament");
+    },
+    onError: (error: Error) => {
+      toast.error(`Error al registrar l'assistència: ${error.message}`);
+    },
   });
 }

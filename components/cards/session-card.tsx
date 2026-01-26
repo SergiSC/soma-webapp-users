@@ -5,7 +5,7 @@ import {
   sessionLevelToLabel,
   SessionLevelEnum,
 } from "@/hooks/api/sessions";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
   ReservationStatus,
@@ -15,6 +15,10 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { useMemo, useState } from "react";
 import { SessionReservationDialog } from "../dialogs/session-reservation-dialog";
+import { SuperAdminButton } from "../super-admin.button";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/context/user-context";
+import { UserType } from "@/lib/api";
 
 interface SessionCardProps {
   session: DailySession;
@@ -46,7 +50,6 @@ export function SessionCard({ session, className }: SessionCardProps) {
   const waitingListReservations = session.reservations.filter(
     (reservation) => reservation.status === ReservationStatus.WAITING_LIST,
   );
-  console.log(session.level);
 
   return (
     <Card
@@ -138,12 +141,29 @@ export function SessionCard({ session, className }: SessionCardProps) {
           </div>
         </div>
       </CardContent>
-
+      <SessionCardFooter session={session} />
       <SessionReservationDialog
         session={session}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
       />
     </Card>
+  );
+}
+
+function SessionCardFooter({ session }: { session: DailySession }) {
+  const router = useRouter();
+  const user = useUser();
+  if (user.user?.type === UserType.CLIENT) {
+    return null;
+  }
+  return (
+    <CardFooter>
+      <SuperAdminButton
+        className="w-full"
+        label="Veure reserves"
+        onClick={() => router.push(`/sessions/${session.id}`)}
+      />
+    </CardFooter>
   );
 }

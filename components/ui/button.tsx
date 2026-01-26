@@ -9,6 +9,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        superAdmin:
+          "bg-foreground text-white hover:bg-foreground/90 focus-visible:ring-foreground/20 dark:focus-visible:ring-foreground/40 dark:bg-foreground/60",
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
@@ -33,7 +35,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 function Button({
@@ -53,7 +55,7 @@ function Button({
       data-slot="button"
       className={cn(
         buttonVariants({ variant, size, className }),
-        "cursor-pointer"
+        "cursor-pointer",
       )}
       {...props}
     />

@@ -1,7 +1,7 @@
 import { apiClient } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { SessionTypeEnum, SessionStatus, SessionLevelEnum } from "./sessions";
-import { ReservationStatus } from "./user-information";
+import { Reservation } from "./reservations";
 
 export interface DailySession {
   id: string;
@@ -25,10 +25,7 @@ export interface DailySession {
   publicationAt: string;
   createdAt: string;
   updatedAt: string | null;
-  reservations: {
-    id: string;
-    status: ReservationStatus;
-  }[];
+  reservations: Reservation[];
 }
 
 export interface DailySessionsFilters {

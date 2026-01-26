@@ -1,6 +1,8 @@
 import { apiClient } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ReservationStatus } from "./user-information";
+import { Reservation } from "./reservations";
 
 export enum SessionTypeEnum {
   PILATES_REFORMER = "reformer",
@@ -36,6 +38,13 @@ export enum SessionStatus {
   COMPLETED = "completed",
 }
 
+export const sessionStatusToLabel: Record<SessionStatus, string> = {
+  [SessionStatus.DRAFT]: "Esborrany",
+  [SessionStatus.PUBLISHED]: "Publicada",
+  [SessionStatus.CANCELLED]: "Cancel·lada",
+  [SessionStatus.COMPLETED]: "Completada",
+};
+
 export enum SessionLevelEnum {
   NORMAL = "normal",
   ADVANCED = "advanced",
@@ -45,6 +54,16 @@ export const sessionLevelToLabel: Record<SessionLevelEnum, string> = {
   [SessionLevelEnum.NORMAL]: "Normal",
   [SessionLevelEnum.ADVANCED]: "Avançat",
 };
+
+export enum WeekDayEnum {
+  MONDAY = "monday",
+  TUESDAY = "tuesday",
+  WEDNESDAY = "wednesday",
+  THURSDAY = "thursday",
+  FRIDAY = "friday",
+  SATURDAY = "saturday",
+  SUNDAY = "sunday",
+}
 
 // Event types
 export interface Session {
@@ -59,6 +78,34 @@ export interface Session {
   observations: string | null;
   createdAt: Date;
   updatedAt: Date | null;
+}
+
+// Session detail response from API
+export interface SessionDetail {
+  id: string;
+  type: SessionTypeEnum;
+  level: SessionLevelEnum;
+  isFree: boolean;
+  status: SessionStatus;
+  day: string;
+  weekDay: WeekDayEnum;
+  startHour: string;
+  endHour: string;
+  room: {
+    id: string;
+    name: string;
+    capacity: number;
+  } | null;
+  teacher: {
+    id: string;
+    name: string;
+    surname: string;
+  } | null;
+  observations: string | null;
+  publicationAt: string;
+  createdAt: string;
+  updatedAt: string | null;
+  reservations: Reservation[];
 }
 
 export interface CreateSessionRequest extends Record<string, unknown> {
@@ -94,7 +141,7 @@ const sessionsApi = {
     );
   },
 
-  getById: (id: string) => apiClient.get<Session>(`/sessions/${id}`),
+  getById: (id: string) => apiClient.get<SessionDetail>(`/sessions/${id}`),
 
   create: (data: CreateSessionRequest) =>
     apiClient.post<Session>("/sessions", data),
@@ -119,6 +166,15 @@ export function useEvent(id: string) {
     queryKey: ["sessions", id],
     queryFn: () => sessionsApi.getById(id),
     enabled: !!id,
+  });
+}
+
+export function useSession(id: string | undefined) {
+  return useQuery({
+    queryKey: ["sessions", id],
+    queryFn: () => sessionsApi.getById(id!),
+    enabled: !!id,
+    staleTime: 60 * 1000, // 1 minute
   });
 }
 

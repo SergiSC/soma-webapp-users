@@ -7,9 +7,10 @@ import { useIsMobile } from "@/hooks/use-is-mobile";
 
 export interface PageSkeletonProps {
   title: string;
-  description?: string;
+  description?: string | React.ReactNode;
   sections: {
     title?: string;
+    action?: React.ReactNode;
     content: React.ReactNode;
   }[];
   actions?:
@@ -45,9 +46,12 @@ export function PageSkeleton({
               actions
             )}
           </div>
-          {description && (
-            <p className="text-sm text-dark-400">{description}</p>
-          )}
+          {description &&
+            (typeof description === "string" ? (
+              <p className="text-sm text-dark-400">{description}</p>
+            ) : (
+              description
+            ))}
         </header>
         <div
           className={`flex flex-col gap-8 overflow-y-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
@@ -59,10 +63,15 @@ export function PageSkeleton({
                 index === sections.length - 1 ? "mb-4" : ""
               }`}
             >
-              {section.title && (
-                <h2 className="text-lg font-bold text-dark-600">
-                  {section.title}
-                </h2>
+              {(section.title || section.action) && (
+                <div className="flex items-center justify-between">
+                  {section.title && (
+                    <h2 className="text-lg font-bold text-dark-600">
+                      {section.title}
+                    </h2>
+                  )}
+                  {section.action}
+                </div>
               )}
               {section.content}
             </section>
