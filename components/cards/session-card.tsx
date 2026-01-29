@@ -51,6 +51,10 @@ export function SessionCard({ session, className }: SessionCardProps) {
     (reservation) => reservation.status === ReservationStatus.WAITING_LIST,
   );
 
+  const roomAtFullCapacity = session.room?.capacity
+    ? confirmedReservations.length >= session.room.capacity
+    : false;
+
   return (
     <Card
       className={cn(
@@ -126,16 +130,16 @@ export function SessionCard({ session, className }: SessionCardProps) {
               )}
               <Button
                 variant="outline"
-                disabled={!!existingReservationType}
+                disabled={!!existingReservationType || roomAtFullCapacity}
                 size="sm"
                 className="mt-auto"
                 onClick={() => setIsDialogOpen(true)}
               >
-                {existingReservationType
-                  ? existingReservationType === ReservationStatus.CONFIRMED
-                    ? "Reservada"
-                    : "Llista d'espera"
-                  : "Reservar"}
+                {roomAtFullCapacity
+                  ? "Completa"
+                  : reservationButtonLabel[
+                      existingReservationType || "default"
+                    ]}
               </Button>
             </div>
           </div>
@@ -167,3 +171,12 @@ function SessionCardFooter({ session }: { session: DailySession }) {
     </CardFooter>
   );
 }
+
+const reservationButtonLabel: Record<ReservationStatus | "default", string> = {
+  [ReservationStatus.CONFIRMED]: "Reservada",
+  [ReservationStatus.WAITING_LIST]: "Llista d'espera",
+  [ReservationStatus.ATTENDED]: "Assistida",
+  [ReservationStatus.NO_SHOW]: "No presentat",
+  [ReservationStatus.CANCELLED]: "Reservar",
+  default: "Reservar",
+};
