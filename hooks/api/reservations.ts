@@ -2,7 +2,7 @@ import { apiClient } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { SessionTypeEnum } from "./sessions";
-import { ReservationStatus } from "./user-information";
+import { ProductTypeEnum, ReservationStatus } from "./user-information";
 
 export interface Reservation {
   id: string;
@@ -31,28 +31,22 @@ export interface Reservation {
   subscriptionId: string | null;
 }
 
-export interface CreateReservationFromSubscriptionRequest extends Record<
-  string,
-  unknown
-> {
+export interface CreateReservationFromSubscriptionRequest
+  extends Record<string, unknown> {
   sessionId: string;
   userId: string;
   subscriptionId: string;
 }
 
-export interface CreateReservationFromPackRequest extends Record<
-  string,
-  unknown
-> {
+export interface CreateReservationFromPackRequest
+  extends Record<string, unknown> {
   sessionId: string;
   userId: string;
   packId: string;
 }
 
-export interface CreateReservationFromComboSubscriptionRequest extends Record<
-  string,
-  unknown
-> {
+export interface CreateReservationFromComboSubscriptionRequest
+  extends Record<string, unknown> {
   sessionId: string;
   userId: string;
   subscriptionId: string;
@@ -62,6 +56,10 @@ export interface CanMakeReservationResponse {
   canMakeReservation: boolean;
   isRoomAtFullCapacity: boolean;
   reasonCannotMakeReservation?: string;
+  product: {
+    id: string;
+    type: ProductTypeEnum;
+  };
   waitingListAmount?: number;
 }
 
@@ -79,7 +77,7 @@ const reservationsApi = {
     apiClient.post<Reservation>("/reservations/from-pack", data),
 
   createFromComboSubscription: (
-    data: CreateReservationFromComboSubscriptionRequest,
+    data: CreateReservationFromComboSubscriptionRequest
   ) =>
     apiClient.post<Reservation>("/reservations/from-combo-subscription", data),
 
@@ -92,7 +90,7 @@ const reservationsApi = {
       sessionId: params.sessionId,
     });
     return apiClient.get<CanMakeReservationResponse>(
-      `/reservations/can-make-reservation?${queryParams.toString()}`,
+      `/reservations/can-make-reservation?${queryParams.toString()}`
     );
   },
 };
@@ -168,7 +166,7 @@ export function useCancelReservation() {
 
 export function useCanMakeReservation(
   userId: string | undefined,
-  sessionId: string | undefined,
+  sessionId: string | undefined
 ) {
   return useQuery({
     queryKey: ["can-make-reservation", userId, sessionId],
@@ -206,7 +204,7 @@ export function useTakeAttendance() {
       };
       return apiClient.post<TakeAttendanceResponse>(
         "/reservations/attendance",
-        body,
+        body
       );
     },
     onSuccess: () => {

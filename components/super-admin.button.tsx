@@ -17,7 +17,7 @@ export function SuperAdminButton({
   className,
 }: SuperAdminButtonProps) {
   const user = useUser();
-  if (user.user?.type === UserType.CLIENT) {
+  if (user.user?.type === undefined || user.user.type !== UserType.ADMIN) {
     return null;
   }
   return (
