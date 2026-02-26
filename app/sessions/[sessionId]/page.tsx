@@ -87,7 +87,7 @@ export default function SessionPage() {
 
   // Redirect clients away from this page
   useEffect(() => {
-    if (user.user?.type === undefined || user.user.type !== UserType.ADMIN) {
+    if (user.user?.type === undefined || user.user.type === UserType.CLIENT) {
       router.replace("/timetable");
     }
   }, [user.user?.type, router]);
