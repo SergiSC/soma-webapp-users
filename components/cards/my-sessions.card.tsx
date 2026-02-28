@@ -18,6 +18,7 @@ import { useCancelReservation } from "@/hooks/api/reservations";
 // Catalan session type labels
 const sessionTypeToLabelCatalan: Record<SessionTypeEnum, string> = {
   [SessionTypeEnum.PILATES_REFORMER]: "Reformer",
+  [SessionTypeEnum.PILATES_REFORMER_PRE_NATAL]: "Reformer Pre Natal",
   [SessionTypeEnum.PILATES_MAT]: "Pilates Mat",
   [SessionTypeEnum.BARRE]: "Barre",
   [SessionTypeEnum.FIT_MIX]: "Fit",
@@ -115,7 +116,7 @@ export function MySessionsCard({
               .filter(
                 (r) =>
                   r.status === ReservationStatus.CONFIRMED ||
-                  r.status === ReservationStatus.WAITING_LIST
+                  r.status === ReservationStatus.WAITING_LIST,
               )
               .map((reservation, index) => (
                 <SessionCard
@@ -168,7 +169,7 @@ function SessionCard({
                     weekday: "short",
                     day: "numeric",
                     month: "short",
-                  }
+                  },
                 )}
               </div>
             )}

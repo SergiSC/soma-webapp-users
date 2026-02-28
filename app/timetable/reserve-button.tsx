@@ -81,19 +81,19 @@ export function ReserveButton({
           packs?.some(
             (pack) =>
               pack.product.recurring?.type === ProductTypeEnum.PACK &&
-              pack.product.recurring.includesReformer
+              pack.product.recurring.includesReformer,
           )
         ) {
           const pack = packs?.find(
             (pack) =>
               pack.product.recurring?.type === ProductTypeEnum.PACK &&
-              pack.product.recurring.includesReformer
+              pack.product.recurring.includesReformer,
           );
           if ((pack?.remainingSessions ?? 0) > 0) {
             if (
               (currentWeekSubscriptionReservations?.filter(
                 (reservation) =>
-                  reservation.sessionType === SessionTypeEnum.PILATES_REFORMER
+                  reservation.sessionType === SessionTypeEnum.PILATES_REFORMER,
               ).length ?? 0) < (pack?.remainingSessions ?? 0)
             ) {
               return {
@@ -129,7 +129,7 @@ export function ReserveButton({
         }
         if (packs?.some((pack) => !pack.product.recurring?.includesReformer)) {
           const pack = packs?.find(
-            (pack) => !pack.product.recurring?.includesReformer
+            (pack) => !pack.product.recurring?.includesReformer,
           );
           if ((pack?.remainingSessions ?? 0) > 0) {
             return {
@@ -153,10 +153,10 @@ export function ReserveButton({
   const buttonText = isLoadingCanMakeReservation
     ? "Comprovant..."
     : canMakeReservation
-    ? session.isFull || canMakeReservationData?.isRoomAtFullCapacity
-      ? "Llista d'espera"
-      : "Reservar"
-    : errorMessage;
+      ? session.isFull || canMakeReservationData?.isRoomAtFullCapacity
+        ? "Llista d'espera"
+        : "Reservar"
+      : errorMessage;
 
   return (
     <>
@@ -191,6 +191,7 @@ export function ReserveButton({
 // Catalan session type labels
 const sessionTypeToLabelCatalan: Record<SessionTypeEnum, string> = {
   [SessionTypeEnum.PILATES_REFORMER]: "Reformer",
+  [SessionTypeEnum.PILATES_REFORMER_PRE_NATAL]: "Reformer Pre Natal",
   [SessionTypeEnum.PILATES_MAT]: "Pilates Mat",
   [SessionTypeEnum.BARRE]: "Barre",
   [SessionTypeEnum.FIT_MIX]: "Fit",

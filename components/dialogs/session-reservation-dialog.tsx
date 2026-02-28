@@ -26,6 +26,7 @@ interface SessionReservationDialogProps {
 
 const sessionTypeLabels: Record<SessionTypeEnum, string> = {
   [SessionTypeEnum.PILATES_REFORMER]: "Pilates Reformer",
+  [SessionTypeEnum.PILATES_REFORMER_PRE_NATAL]: "Pilates Reformer Pre Natal",
   [SessionTypeEnum.PILATES_MAT]: "Pilates Mat",
   [SessionTypeEnum.BARRE]: "Barre",
   [SessionTypeEnum.FIT_MIX]: "Fit Mix",
@@ -36,6 +37,8 @@ const sessionTypeLabels: Record<SessionTypeEnum, string> = {
 const sessionTypeDescriptions: Record<SessionTypeEnum, string> = {
   [SessionTypeEnum.PILATES_REFORMER]:
     "El Pilates Reformer és una modalitat de Pilates que utilitza una màquina especialitzada anomenada reformer. Aquesta classe combina exercicis de força, flexibilitat i control corporal per millorar la postura, la força del core i la coordinació. Ideal per a tots els nivells.",
+  [SessionTypeEnum.PILATES_REFORMER_PRE_NATAL]:
+    "El Pilates Reformer Pre Natal és una modalitat de Pilates que utilitza una màquina especialitzada anomenada reformer. Aquesta classe combina exercicis de força, flexibilitat i control corporal per millorar la postura, la força del core i la coordinació. Ideal per a totes les mares en diferents fases de la seva gestació.",
   [SessionTypeEnum.PILATES_MAT]:
     "El Pilates Mat és una forma clàssica de Pilates que es practica sobre una estora. Aquesta classe se centra en la força del core, la flexibilitat i el control corporal utilitzant només el pes corporal. Perfecte per millorar la postura i la força funcional.",
   [SessionTypeEnum.BARRE]:

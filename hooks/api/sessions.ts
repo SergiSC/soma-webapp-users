@@ -1,11 +1,11 @@
 import { apiClient } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ReservationStatus } from "./user-information";
 import { Reservation } from "./reservations";
 
 export enum SessionTypeEnum {
   PILATES_REFORMER = "reformer",
+  PILATES_REFORMER_PRE_NATAL = "reformer_pre_natal",
   PILATES_MAT = "pilates_mat",
   BARRE = "barre",
   FIT_MIX = "fit_mix",
@@ -15,6 +15,7 @@ export enum SessionTypeEnum {
 
 export const sessionColorsRecord: Record<SessionTypeEnum, string> = {
   [SessionTypeEnum.PILATES_REFORMER]: "#4285f4",
+  [SessionTypeEnum.PILATES_REFORMER_PRE_NATAL]: "#cc9e50",
   [SessionTypeEnum.PILATES_MAT]: "#34a853",
   [SessionTypeEnum.BARRE]: "#fbbc04",
   [SessionTypeEnum.FIT_MIX]: "#ea4335",
@@ -24,6 +25,7 @@ export const sessionColorsRecord: Record<SessionTypeEnum, string> = {
 
 export const sessionTypeToLabel: Record<SessionTypeEnum, string> = {
   [SessionTypeEnum.PILATES_REFORMER]: "Pilates Reformer",
+  [SessionTypeEnum.PILATES_REFORMER_PRE_NATAL]: "Pilates Reformer Pre Natal",
   [SessionTypeEnum.PILATES_MAT]: "Pilates Mat",
   [SessionTypeEnum.BARRE]: "Barre",
   [SessionTypeEnum.FIT_MIX]: "Fit",
