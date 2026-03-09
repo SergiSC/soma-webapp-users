@@ -61,7 +61,7 @@ export function ProductCard({ product }: ProductCardProps) {
     try {
       setIsLoading(true);
       const response = await apiClient.get<{ url: string }>(
-        `/products/${product.id}/users/${user.id}/checkout`
+        `/products/${product.id}/users/${user.id}/checkout`,
       );
 
       if (response.url) {
@@ -177,7 +177,7 @@ export function ProductCard({ product }: ProductCardProps) {
         className={cn(
           "border-l-4 hover:shadow-md transition-all",
           colors.bg,
-          colors.text
+          colors.text,
         )}
         style={{ borderLeftColor: colors.border }}
       >
@@ -200,7 +200,7 @@ export function ProductCard({ product }: ProductCardProps) {
                   className={cn(
                     "text-xs font-semibold py-1 rounded",
                     colors.text,
-                    colors.bg
+                    colors.bg,
                   )}
                 >
                   {getProductTypeLabel()}

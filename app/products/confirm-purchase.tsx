@@ -69,7 +69,10 @@ export function PurchaseOrRejectproductDialog({
           </Button>
           <Button
             onClick={() => {
-              window.open(url, "_blank");
+              const reference = window.open(url, "_blank");
+              if (reference) {
+                reference.location.href = url;
+              }
               setIsDialogOpen(false);
             }}
           >
