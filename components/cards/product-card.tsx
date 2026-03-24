@@ -51,7 +51,7 @@ export function ProductCard({ product }: ProductCardProps) {
         label:
           "Subscripció " +
           (recurring.interval === "month" ? "mensual" : "anual"),
-        value: "(desde el dia de la compra)",
+        value: "(des de el dia de la compra)",
       });
       entries.push({
         label: "Tipus de classe",
@@ -69,12 +69,9 @@ export function ProductCard({ product }: ProductCardProps) {
         value: recurring.amountOtherPerWeek?.toString() ?? "",
       });
       entries.push({
-        label: "Duració",
-        value:
-          recurring.intervalCount?.toString() + " / " + recurring.interval ===
-          "month"
-            ? "mes"
-            : "any",
+        label:
+          "Combo " + (recurring.interval === "month" ? "mensual" : "anual"),
+        value: "(des de el dia de la compra)",
       });
     }
 

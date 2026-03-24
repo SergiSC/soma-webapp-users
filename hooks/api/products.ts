@@ -38,13 +38,8 @@ export interface ProductListResponse {
 }
 
 const productsApi = {
-  list: (filters?: {
-    active?: boolean;
-    type?: ProductTypeEnum | ProductTypeEnum[];
-  }) => {
+  list: (filters?: { type?: ProductTypeEnum | ProductTypeEnum[] }) => {
     const params = new URLSearchParams();
-
-    params.append("active", "true");
 
     if (filters?.type) {
       const types = Array.isArray(filters.type) ? filters.type : [filters.type];
@@ -53,16 +48,16 @@ const productsApi = {
 
     const queryString = params.toString();
     return apiClient.get<ProductListResponse>(
-      `/products${queryString ? `?${queryString}` : ""}`
+      `/products/active${queryString ? `?${queryString}` : ""}`,
     );
   },
   get: (productId: string) => apiClient.get<Product>(`/products/${productId}`),
   createCheckoutSession: (
     productId: string,
-    userId: string
+    userId: string,
   ): Promise<{ url: string }> =>
     apiClient.get<{ url: string }>(
-      `/products/${productId}/users/${userId}/checkout`
+      `/products/${productId}/users/${userId}/checkout`,
     ),
 };
 
