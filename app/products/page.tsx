@@ -3,8 +3,8 @@
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { PageSkeleton } from "@/components/page-skeleton";
-import { ProductCards } from "@/components/cards/product-card";
-import { useProducts, ProductTypeEnum } from "@/hooks/api/products";
+import { ProductTypeEnum } from "@/hooks/api/products";
+import { ProductsList } from "./products-list";
 
 export default function ProductsPage() {
   const searchParams = useSearchParams();
@@ -18,25 +18,15 @@ export default function ProductsPage() {
     ) {
       return typeParam as ProductTypeEnum;
     }
-    return undefined;
+    return ProductTypeEnum.SUBSCRIPTION;
   }, [searchParams]);
-
-  const { data: productsResponse, isLoading } = useProducts({
-    active: true,
-    type: productType,
-  });
 
   return (
     <PageSkeleton
       title="Tarifes"
       sections={[
         {
-          content: (
-            <ProductCards
-              products={productsResponse?.items}
-              isLoading={isLoading}
-            />
-          ),
+          content: <ProductsList type={productType} />,
         },
       ]}
     />

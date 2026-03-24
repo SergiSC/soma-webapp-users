@@ -10,8 +10,7 @@ import { Product, ProductTypeEnum } from "@/hooks/api/products";
 
 const labels: Record<ProductTypeEnum, string[]> = {
   [ProductTypeEnum.SUBSCRIPTION]: [
-    "Subscripció Mensual.",
-    "L'inici de la subscripció serà el dia de la compra.",
+    "Subscripció Mensual (desde el dia de la compra).",
     "Totes les classes tenen una durada de 50 minuts.",
     "En cas que es vulgui cancel·lar la subscripció, caldrà fer-ho com a mínim de 10 dies abans del pròxim pagament.",
   ],
@@ -22,8 +21,7 @@ const labels: Record<ProductTypeEnum, string[]> = {
     "Un cop abonat el pack, no es retornaran els diners.",
   ],
   [ProductTypeEnum.SUBSCRIPTION_COMBO]: [
-    "Subscripció Premium.",
-    "L'inici de la subscripció serà el dia de la compra.",
+    "Subscripció Mensual Premium (desde el dia de la compra).",
     "Totes les classes tenen una durada de 50 minuts.",
     "En cas que es vulgui cancel·lar la subscripció, caldrà fer-ho com a mínim de 10 dies abans del pròxim pagament.",
   ],
