@@ -1,8 +1,9 @@
 import { apiClient } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { SessionTypeEnum } from "./sessions";
+import { SessionLevelEnum, SessionTypeEnum } from "./sessions";
 import { ProductTypeEnum, ReservationStatus } from "./user-information";
+import { PaginatedRequest, PaginatedResult } from "@/lib/paginated";
 
 export interface Reservation {
   id: string;
@@ -17,36 +18,76 @@ export interface Reservation {
   };
   user: {
     id: string;
-    name: string | null;
+    name: string;
     surname: string | null;
   };
-  status: ReservationStatus;
-  createdAt: string;
-  updatedAt: string | null;
   product: {
     id: string;
     name: string;
   } | null;
   packId: string | null;
   subscriptionId: string | null;
+  status: ReservationStatus;
+  createdAt: string;
+  updatedAt: string | null;
 }
 
-export interface CreateReservationFromSubscriptionRequest
-  extends Record<string, unknown> {
+export interface AggregatedReservationJsonObject {
+  id: string;
+  sessionId: string;
+  userId: string;
+  packId: string | null;
+  subscriptionId: string | null;
+  status: ReservationStatus;
+  createdAt: string;
+  updatedAt: string | null;
+  session: {
+    id: string;
+    type: SessionTypeEnum;
+    level: SessionLevelEnum;
+    schedule: {
+      day: string;
+      start: string;
+      end: string;
+    };
+    teacher: {
+      id: string;
+      name: string;
+    } | null;
+    room: {
+      id: string;
+      name: string;
+      capacity: number;
+    } | null;
+  };
+  product: {
+    id: string;
+    name: string;
+  } | null;
+}
+
+export interface CreateReservationFromSubscriptionRequest extends Record<
+  string,
+  unknown
+> {
   sessionId: string;
   userId: string;
   subscriptionId: string;
 }
 
-export interface CreateReservationFromPackRequest
-  extends Record<string, unknown> {
+export interface CreateReservationFromPackRequest extends Record<
+  string,
+  unknown
+> {
   sessionId: string;
   userId: string;
   packId: string;
 }
 
-export interface CreateReservationFromComboSubscriptionRequest
-  extends Record<string, unknown> {
+export interface CreateReservationFromComboSubscriptionRequest extends Record<
+  string,
+  unknown
+> {
   sessionId: string;
   userId: string;
   subscriptionId: string;
@@ -68,8 +109,35 @@ export interface CanMakeReservationRequest {
   sessionId: string;
 }
 
+export enum ReservationListFilterEnum {
+  PAST = "past",
+  FUTURE = "future",
+}
+
 // API functions
 const reservationsApi = {
+  list: (
+    userId: string,
+    filter: ReservationListFilterEnum,
+    paginationRequest: PaginatedRequest,
+  ) => {
+    let url = `/users/${userId}/reservations`;
+    switch (filter) {
+      case ReservationListFilterEnum.PAST:
+        url += "/past";
+        break;
+      case ReservationListFilterEnum.FUTURE:
+        url += "/future";
+        break;
+    }
+    const queryParams = new URLSearchParams({
+      page: paginationRequest.page.toString(),
+      perPage: paginationRequest.perPage.toString(),
+    });
+    return apiClient.get<PaginatedResult<AggregatedReservationJsonObject>>(
+      `${url}?${queryParams.toString()}`,
+    );
+  },
   createFromSubscription: (data: CreateReservationFromSubscriptionRequest) =>
     apiClient.post<Reservation>("/reservations/from-subscription", data),
 
@@ -77,7 +145,7 @@ const reservationsApi = {
     apiClient.post<Reservation>("/reservations/from-pack", data),
 
   createFromComboSubscription: (
-    data: CreateReservationFromComboSubscriptionRequest
+    data: CreateReservationFromComboSubscriptionRequest,
   ) =>
     apiClient.post<Reservation>("/reservations/from-combo-subscription", data),
 
@@ -90,12 +158,26 @@ const reservationsApi = {
       sessionId: params.sessionId,
     });
     return apiClient.get<CanMakeReservationResponse>(
-      `/reservations/can-make-reservation?${queryParams.toString()}`
+      `/reservations/can-make-reservation?${queryParams.toString()}`,
     );
   },
 };
 
 // React Query hooks
+export function useUserReservations(
+  userId: string | undefined,
+  filter: ReservationListFilterEnum,
+  paginationRequest: PaginatedRequest = {
+    page: 1,
+    perPage: 10,
+  },
+) {
+  return useQuery({
+    queryKey: ["user-reservations", userId, filter],
+    queryFn: () => reservationsApi.list(userId!, filter, paginationRequest),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
 export function useCreateReservationFromSubscription() {
   const queryClient = useQueryClient();
 
@@ -166,7 +248,7 @@ export function useCancelReservation() {
 
 export function useCanMakeReservation(
   userId: string | undefined,
-  sessionId: string | undefined
+  sessionId: string | undefined,
 ) {
   return useQuery({
     queryKey: ["can-make-reservation", userId, sessionId],
@@ -204,7 +286,7 @@ export function useTakeAttendance() {
       };
       return apiClient.post<TakeAttendanceResponse>(
         "/reservations/attendance",
-        body
+        body,
       );
     },
     onSuccess: () => {

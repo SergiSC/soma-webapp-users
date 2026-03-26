@@ -1,11 +1,5 @@
 import { DailySession } from "@/hooks/api/daily-sessions";
-import {
-  sessionTypeToLabel,
-  sessionColorsRecord,
-  SessionTypeEnum,
-  sessionLevelToLabel,
-  SessionLevelEnum,
-} from "@/hooks/api/sessions";
+import { SessionTypeEnum, SessionLevelEnum } from "@/hooks/api/sessions";
 import { cn } from "@/lib/utils";
 import { ReservationStatus } from "@/hooks/api/user-information";
 import {
@@ -17,6 +11,11 @@ import {
 } from "@/components/ui/dialog";
 import { ReserveButton } from "@/app/timetable/reserve-button";
 import { Badge } from "../ui/badge";
+import {
+  sessionColorsRecord,
+  sessionTypeToLabel,
+  sessionLevelToLabel,
+} from "@/lib/constants";
 
 interface SessionReservationDialogProps {
   session: DailySession;

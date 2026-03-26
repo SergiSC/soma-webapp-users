@@ -7,23 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useDailySessions } from "@/hooks/api/daily-sessions";
 import { SessionCard } from "@/components/cards/session-card";
 import { cn } from "@/lib/utils";
-
-const CATALAN_MONTHS = [
-  "Gen",
-  "Feb",
-  "Mar",
-  "Abr",
-  "Mai",
-  "Jun",
-  "Jul",
-  "Ago",
-  "Set",
-  "Oct",
-  "Nov",
-  "Des",
-];
-
-const CATALAN_WEEKDAYS = ["Dl", "Dt", "Dc", "Dj", "Dv", "Ds", "Dg"];
+import { CATALAN_MONTHS, CATALAN_WEEKDAYS } from "@/lib/constants";
 
 // Helper function to format date as YYYY-MM-DD in local timezone (not UTC)
 const formatDateLocal = (date: Date): string => {
@@ -65,9 +49,9 @@ export function Timetable() {
         1,
         12,
         0,
-        0
+        0,
       ),
-    [selectedDate]
+    [selectedDate],
   );
 
   // Update URL when selectedDate changes
@@ -78,7 +62,7 @@ export function Timetable() {
       params.set("date", dateString);
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
-    [router, pathname, searchParams]
+    [router, pathname, searchParams],
   );
 
   // Initialize URL with today's date if no date parameter exists
@@ -125,7 +109,7 @@ export function Timetable() {
       1,
       12,
       0,
-      0
+      0,
     );
     // Reset selected date to first available day of new month
     const year = newMonth.getFullYear();
@@ -145,7 +129,7 @@ export function Timetable() {
       1,
       12,
       0,
-      0
+      0,
     );
     // Reset selected date to first available day of new month
     const year = newMonth.getFullYear();
@@ -191,7 +175,7 @@ export function Timetable() {
       1,
       12,
       0,
-      0
+      0,
     );
     const todayStart = new Date(
       today.getFullYear(),
@@ -199,7 +183,7 @@ export function Timetable() {
       1,
       12,
       0,
-      0
+      0,
     );
     return previousMonth < todayStart;
   }, [currentMonth, today]);
@@ -210,7 +194,7 @@ export function Timetable() {
 
     const container = scrollContainerRef.current;
     const selectedButton = container.querySelector(
-      `[data-date="${formatDateLocal(selectedDate)}"]`
+      `[data-date="${formatDateLocal(selectedDate)}"]`,
     ) as HTMLElement;
 
     if (selectedButton) {
@@ -270,7 +254,7 @@ export function Timetable() {
               onClick={() => updateUrlDate(day)}
               className={cn(
                 "min-w-[50px] flex flex-col gap-1 h-auto py-2 px-3",
-                isToday(day) && !isSelected(day) && "border-2 border-primary"
+                isToday(day) && !isSelected(day) && "border-2 border-primary",
               )}
             >
               <span className="text-xs text-muted-foreground">

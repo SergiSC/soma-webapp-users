@@ -1,10 +1,5 @@
 import { DailySession } from "@/hooks/api/daily-sessions";
-import {
-  sessionTypeToLabel,
-  sessionColorsRecord,
-  sessionLevelToLabel,
-  SessionLevelEnum,
-} from "@/hooks/api/sessions";
+import { SessionLevelEnum } from "@/hooks/api/sessions";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
@@ -19,6 +14,11 @@ import { SuperAdminButton } from "../super-admin.button";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/user-context";
 import { UserType } from "@/lib/api";
+import {
+  sessionColorsRecord,
+  sessionLevelToLabel,
+  sessionTypeToLabel,
+} from "@/lib/constants";
 
 interface SessionCardProps {
   session: DailySession;
