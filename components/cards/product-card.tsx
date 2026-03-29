@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Product, ProductTypeEnum } from "@/hooks/api/products";
 import { useUser } from "@/context/user-context";
-import { apiClient, User } from "@/lib/api";
+import { apiClient } from "@/lib/api";
 import { Fragment, useState } from "react";
 import { Spinner } from "../ui/spinner";
 import { cn } from "@/lib/utils";
@@ -22,8 +22,6 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { user } = useUser();
-
   const [url, setUrl] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -96,13 +94,12 @@ export function ProductCard({ product }: ProductCardProps) {
     <>
       <Card className="hover:shadow-md transition-all bg-card border border-primary">
         <ProductCardHeader product={product} />
-        <CardContent className="flex flex-col gap-2">
+        <CardContent className="flex flex-col gap-2 p-4">
           {getSubtitle()}
         </CardContent>
 
         <ProductCardFooter
           product={product}
-          user={user}
           setUrl={setUrl}
           setIsDialogOpen={setIsDialogOpen}
         />
@@ -124,7 +121,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
 function ProductCardHeader({ product }: ProductCardProps) {
   return (
-    <CardHeader className="bg-linear-to-br from-primary from-0% via-transparent via-45% to-transparent rounded-t-md">
+    <CardHeader className="rounded-t-md bg-primary/10">
       <CardTitle className="text-2xl font-bold text-foreground">
         {product.name}
       </CardTitle>
@@ -152,17 +149,16 @@ const productCardBadgeColors = {
 
 interface ProductCardFooterProps {
   product: Product;
-  user: User | null;
   setUrl: (url: string) => void;
   setIsDialogOpen: (isDialogOpen: boolean) => void;
 }
 
 function ProductCardFooter({
   product,
-  user,
   setUrl,
   setIsDialogOpen,
 }: ProductCardFooterProps) {
+  const { user } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const handlePurchase = async () => {
     if (!user?.id) return;

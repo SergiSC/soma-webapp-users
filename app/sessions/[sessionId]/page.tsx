@@ -3,14 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { PageSkeleton } from "@/components/page-skeleton";
-import {
-  useSession,
-  sessionTypeToLabel,
-  sessionLevelToLabel,
-  sessionStatusToLabel,
-  SessionStatus,
-} from "@/hooks/api/sessions";
-import { ReservationStatus } from "@/hooks/api/user-information";
+import { useSession, SessionStatus } from "@/hooks/api/sessions";
+import { ReservationStatus } from "@/hooks/api/reservations";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,32 +18,16 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { useUser } from "@/context/user-context";
-import { UserType } from "@/lib/api";
+import { UserType } from "@/hooks/api/users";
 import { Reservation, useTakeAttendance } from "@/hooks/api/reservations";
 import { SuperAdminButton } from "@/components/super-admin.button";
-
-const reservationStatusToLabel: Record<ReservationStatus, string> = {
-  [ReservationStatus.CONFIRMED]: "Confirmada",
-  [ReservationStatus.WAITING_LIST]: "Llista d'espera",
-  [ReservationStatus.CANCELLED]: "Cancel·lada",
-  [ReservationStatus.ATTENDED]: "Assistida",
-  [ReservationStatus.NO_SHOW]: "No presentat",
-};
-
-const reservationStatusToVariant: Record<
-  ReservationStatus,
-  | "reservationConfirmed"
-  | "reservationWaitingList"
-  | "reservationCancelled"
-  | "reservationAttended"
-  | "reservationNoShow"
-> = {
-  [ReservationStatus.CONFIRMED]: "reservationConfirmed",
-  [ReservationStatus.WAITING_LIST]: "reservationWaitingList",
-  [ReservationStatus.CANCELLED]: "reservationCancelled",
-  [ReservationStatus.ATTENDED]: "reservationAttended",
-  [ReservationStatus.NO_SHOW]: "reservationNoShow",
-};
+import {
+  reservationStatusToLabel,
+  reservationStatusToVariant,
+  sessionLevelToLabel,
+  sessionStatusToLabel,
+  sessionTypeToLabel,
+} from "@/lib/constants";
 
 const sessionStatusToVariant: Record<
   SessionStatus,

@@ -1,6 +1,8 @@
 import {
   CATALAN_MONTHS,
   CATALAN_WEEKDAYS,
+  reservationStatusToLabel,
+  reservationStatusToVariant,
   sessionColorsRecord,
   sessionTypeToLabel,
 } from "@/lib/constants";
@@ -14,24 +16,28 @@ import {
 import { AggregatedReservationJsonObject } from "@/hooks/api/reservations";
 import { sessionLevelToLabel } from "@/lib/constants";
 import { Trash2Icon } from "lucide-react";
+import { Badge } from "../ui/badge";
 
 interface ReservationCardProps {
   reservation: AggregatedReservationJsonObject;
   setReservationToCancel: (
     reservation: AggregatedReservationJsonObject,
   ) => void;
+  isCompleted: boolean;
 }
 
 export function ReservationCard({
   reservation,
   setReservationToCancel,
+  isCompleted,
 }: ReservationCardProps) {
   return (
-    <Card className="border-2 border-primary ">
+    <Card className="border border-primary">
       <ReservationCardHeader reservation={reservation} />
       <ReservationCardContent
         reservation={reservation}
         setReservationToCancel={setReservationToCancel}
+        isCompleted={isCompleted}
       />
     </Card>
   );
@@ -50,7 +56,7 @@ function ReservationCardHeader({
 
   return (
     <CardHeader
-      className="flex flex-row items-center gap-2 p-4"
+      className="flex flex-row items-center gap-2 p-4 rounded-t-md"
       style={{ backgroundColor: `${reservationColor}50` }}
     >
       <span className="size-12 rounded-md flex flex-col text-center justify-center font-semibold text-sm bg-primary/70 text-background">
@@ -72,6 +78,7 @@ function ReservationCardHeader({
 function ReservationCardContent({
   reservation,
   setReservationToCancel,
+  isCompleted,
 }: ReservationCardProps) {
   const [year, month, day] = reservation.session.schedule.day.split("-");
   const date = new Date(Number(year), Number(month) - 1, Number(day));
@@ -91,10 +98,19 @@ function ReservationCardContent({
           <span className="font-medium">{label}</span> {value}
         </p>
       ))}
-      <Trash2Icon
-        className="size-5 text-muted-foreground cursor-pointer absolute bottom-5 right-4"
-        onClick={() => setReservationToCancel(reservation)}
-      />
+      {isCompleted ? (
+        <Badge
+          variant={reservationStatusToVariant[reservation.status]}
+          className="absolute bottom-5 right-4 opacity-70"
+        >
+          {reservationStatusToLabel[reservation.status]}
+        </Badge>
+      ) : (
+        <Trash2Icon
+          className="size-5 text-muted-foreground cursor-pointer absolute bottom-5 right-4"
+          onClick={() => setReservationToCancel(reservation)}
+        />
+      )}
     </CardContent>
   );
 }

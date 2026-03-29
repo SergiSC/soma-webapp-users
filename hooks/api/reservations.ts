@@ -1,10 +1,22 @@
 import { apiClient } from "@/lib/api";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import { SessionLevelEnum, SessionTypeEnum } from "./sessions";
-import { ProductTypeEnum, ReservationStatus } from "./user-information";
 import { PaginatedRequest, PaginatedResult } from "@/lib/paginated";
+import { ProductTypeEnum } from "./products";
 
+export enum ReservationStatus {
+  WAITING_LIST = "waiting_list",
+  CONFIRMED = "confirmed",
+  CANCELLED = "cancelled",
+  ATTENDED = "attended",
+  NO_SHOW = "no_show",
+}
 export interface Reservation {
   id: string;
   session: {
@@ -175,7 +187,27 @@ export function useUserReservations(
   return useQuery({
     queryKey: ["user-reservations", userId, filter],
     queryFn: () => reservationsApi.list(userId!, filter, paginationRequest),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useInfiniteUserReservations(
+  userId: string | undefined,
+  filter: ReservationListFilterEnum,
+  perPage: number = 10,
+) {
+  return useInfiniteQuery({
+    queryKey: ["user-reservations-infinite", userId, filter],
+    queryFn: ({ pageParam }) =>
+      reservationsApi.list(userId!, filter, {
+        page: pageParam as number,
+        perPage,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNextPage ? lastPage.nextPage : undefined,
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
   });
 }
 export function useCreateReservationFromSubscription() {

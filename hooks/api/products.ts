@@ -1,8 +1,17 @@
 import { apiClient } from "@/lib/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ProductTypeEnum, RecurringIntervalEnum } from "./user-information";
+import { ReservationStatus } from "./reservations";
 
-export { ProductTypeEnum, RecurringIntervalEnum };
+export enum ProductTypeEnum {
+  PACK = "pack",
+  SUBSCRIPTION = "subscription",
+  SUBSCRIPTION_COMBO = "subscription-combo",
+}
+
+export enum RecurringIntervalEnum {
+  MONTH = "month",
+  YEAR = "year",
+}
 
 export interface ProductRecurring {
   type: ProductTypeEnum;
@@ -37,6 +46,31 @@ export interface ProductListResponse {
   totalPages: number;
 }
 
+export interface ListUserActiveProductsResponse {
+  subscription: {
+    id: string;
+    currentWeekReservationsByStatus: Record<
+      ReservationStatus,
+      {
+        id: string;
+        status: ReservationStatus;
+      }[]
+    >;
+    product: Product;
+  } | null;
+  packs: {
+    id: string;
+    reservationsByStatus: Record<
+      ReservationStatus,
+      {
+        id: string;
+        status: ReservationStatus;
+      }[]
+    >;
+    product: Product;
+  }[];
+}
+
 const productsApi = {
   list: (filters?: { type?: ProductTypeEnum | ProductTypeEnum[] }) => {
     const params = new URLSearchParams();
@@ -58,6 +92,10 @@ const productsApi = {
   ): Promise<{ url: string }> =>
     apiClient.get<{ url: string }>(
       `/products/${productId}/users/${userId}/checkout`,
+    ),
+  listUserActiveProducts: (userId: string) =>
+    apiClient.get<ListUserActiveProductsResponse>(
+      `/users/${userId}/products/active`,
     ),
 };
 
@@ -88,5 +126,14 @@ export function useCreateProductCheckoutSession(productId: string) {
     onError: (error) => {
       console.error("Error creating checkout session:", error);
     },
+  });
+}
+
+export function useListUserActiveProducts(userId?: string) {
+  return useQuery({
+    queryKey: ["user-active-products", userId],
+    queryFn: () => productsApi.listUserActiveProducts(userId!),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }

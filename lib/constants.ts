@@ -3,6 +3,7 @@ import {
   SessionStatus,
   SessionTypeEnum,
 } from "@/hooks/api/sessions";
+import { ReservationStatus } from "@/hooks/api/reservations";
 
 export const sessionColorsRecord: Record<SessionTypeEnum, string> = {
   [SessionTypeEnum.PILATES_REFORMER]: "#4285f4",
@@ -51,6 +52,18 @@ export const catalanIntlFormatter = new Intl.DateTimeFormat("ca-ES", {
   timeZone: "Europe/Madrid",
 });
 
+export const catalanIntlMonthYearFormatter = new Intl.DateTimeFormat("ca-ES", {
+  month: "long",
+  year: "numeric",
+});
+
+export const catalanIntlDayFormatter = new Intl.DateTimeFormat("ca-ES", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
 export const sessionStatusToLabel: Record<SessionStatus, string> = {
   [SessionStatus.DRAFT]: "Esborrany",
   [SessionStatus.PUBLISHED]: "Publicada",
@@ -61,4 +74,27 @@ export const sessionStatusToLabel: Record<SessionStatus, string> = {
 export const sessionLevelToLabel: Record<SessionLevelEnum, string> = {
   [SessionLevelEnum.NORMAL]: "Normal",
   [SessionLevelEnum.ADVANCED]: "Avançat",
+};
+
+export const reservationStatusToLabel: Record<ReservationStatus, string> = {
+  [ReservationStatus.CONFIRMED]: "Confirmada",
+  [ReservationStatus.WAITING_LIST]: "Llista d'espera",
+  [ReservationStatus.CANCELLED]: "Cancel·lada",
+  [ReservationStatus.ATTENDED]: "Assistida",
+  [ReservationStatus.NO_SHOW]: "No presentat",
+};
+
+export const reservationStatusToVariant: Record<
+  ReservationStatus,
+  | "reservationConfirmed"
+  | "reservationWaitingList"
+  | "reservationCancelled"
+  | "reservationAttended"
+  | "reservationNoShow"
+> = {
+  [ReservationStatus.CONFIRMED]: "reservationConfirmed",
+  [ReservationStatus.WAITING_LIST]: "reservationWaitingList",
+  [ReservationStatus.CANCELLED]: "reservationCancelled",
+  [ReservationStatus.ATTENDED]: "reservationAttended",
+  [ReservationStatus.NO_SHOW]: "reservationNoShow",
 };

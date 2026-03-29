@@ -1,7 +1,7 @@
 import { apiClient } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Reservation } from "./reservations";
+import { Reservation, ReservationStatus } from "./reservations";
 
 export enum SessionTypeEnum {
   PILATES_REFORMER = "reformer",
@@ -51,7 +51,7 @@ export interface Session {
 }
 
 // Session detail response from API
-export interface SessionDetail {
+export interface SessionAggregated {
   id: string;
   type: SessionTypeEnum;
   level: SessionLevelEnum;
@@ -75,7 +75,25 @@ export interface SessionDetail {
   publicationAt: string;
   createdAt: string;
   updatedAt: string | null;
-  reservations: Reservation[];
+  confirmedReservations: { count: number; userIds: string[] };
+  totalReservations: { count: number; userIds: string[] };
+}
+
+export interface SessionWithReservations extends Omit<
+  SessionAggregated,
+  "confirmedReservations" | "totalReservations"
+> {
+  reservations: {
+    id: string;
+    status: ReservationStatus;
+    user: {
+      id: string;
+      name: string;
+      surname: string;
+    };
+    createdAt: string;
+    updatedAt: string | null;
+  }[];
 }
 
 export interface CreateSessionRequest extends Record<string, unknown> {
@@ -111,7 +129,8 @@ const sessionsApi = {
     );
   },
 
-  getById: (id: string) => apiClient.get<SessionDetail>(`/sessions/${id}`),
+  getById: (id: string) =>
+    apiClient.get<SessionWithReservations>(`/sessions/${id}`),
 
   create: (data: CreateSessionRequest) =>
     apiClient.post<Session>("/sessions", data),

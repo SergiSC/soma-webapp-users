@@ -1,7 +1,7 @@
 import { ShieldCheckIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { useUser } from "@/context/user-context";
-import { UserType } from "@/lib/api";
+import { UserType } from "@/hooks/api/users";
 
 interface SuperAdminButtonProps {
   label: string;
@@ -17,6 +17,7 @@ export function SuperAdminButton({
   className,
 }: SuperAdminButtonProps) {
   const user = useUser();
+
   if (user.user?.type === undefined || user.user.type === UserType.CLIENT) {
     return null;
   }

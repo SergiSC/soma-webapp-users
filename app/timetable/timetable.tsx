@@ -1,13 +1,21 @@
 "use client";
 
-import { useMemo, useRef, useEffect, useCallback } from "react";
+import { useMemo, useRef, useEffect, useCallback, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDailySessions } from "@/hooks/api/daily-sessions";
 import { SessionCard } from "@/components/cards/session-card";
 import { cn } from "@/lib/utils";
-import { CATALAN_MONTHS, CATALAN_WEEKDAYS } from "@/lib/constants";
+import {
+  CATALAN_MONTHS,
+  CATALAN_WEEKDAYS,
+  catalanIntlDayFormatter,
+} from "@/lib/constants";
+import { SessionReservationDialog } from "@/components/dialogs/session-reservation-dialog";
+import { useUser } from "@/context/user-context";
+import { UserType } from "@/hooks/api/users";
+import { EmptyState } from "@/components/empty-state";
+import { CalendarIcon } from "lucide-react";
 
 // Helper function to format date as YYYY-MM-DD in local timezone (not UTC)
 const formatDateLocal = (date: Date): string => {
@@ -23,15 +31,21 @@ export function Timetable() {
   const searchParams = useSearchParams();
   const today = useMemo(() => new Date(), []);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { user } = useUser();
+
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null,
+  );
+
+  const isAdminOrTeacher =
+    user?.type === UserType.ADMIN || user?.type === UserType.TEACHER;
 
   // Get date from URL query params or default to today
   const selectedDate = useMemo(() => {
     const dateParam = searchParams.get("date");
     if (dateParam) {
-      // Parse YYYY-MM-DD format in local timezone
       const [year, month, day] = dateParam.split("-").map(Number);
       if (year && month && day) {
-        // Create date at noon local time to avoid DST/timezone edge cases
         const parsedDate = new Date(year, month - 1, day, 12, 0, 0);
         if (!isNaN(parsedDate.getTime())) {
           return parsedDate;
@@ -40,19 +54,6 @@ export function Timetable() {
     }
     return today;
   }, [searchParams, today]);
-
-  const currentMonth = useMemo(
-    () =>
-      new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth(),
-        1,
-        12,
-        0,
-        0,
-      ),
-    [selectedDate],
-  );
 
   // Update URL when selectedDate changes
   const updateUrlDate = useCallback(
@@ -80,113 +81,71 @@ export function Timetable() {
     date: selectedDate,
   });
 
-  // Get all days in the current month
-  const daysInMonth = useMemo(() => {
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
-    const lastDay = new Date(year, month + 1, 0, 12, 0, 0);
-    const days: Date[] = [];
+  // Generate a flat range of days spanning 3 months.
+  // Admins/teachers can see from the 1st of the current month; others start from today.
+  const daysRange = useMemo(() => {
+    const startDate = isAdminOrTeacher
+      ? new Date(today.getFullYear(), today.getMonth(), 1, 12, 0, 0)
+      : new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate(),
+          12,
+          0,
+          0,
+        );
 
-    // If it's the current month, start from today
-    const startDate =
-      year === today.getFullYear() && month === today.getMonth()
-        ? today.getDate()
-        : 1;
-
-    for (let day = startDate; day <= lastDay.getDate(); day++) {
-      // Create date at noon local time to avoid DST/timezone edge cases
-      const date = new Date(year, month, day, 12, 0, 0);
-      days.push(date);
-    }
-
-    return days;
-  }, [currentMonth, today]);
-
-  const handlePreviousMonth = () => {
-    const newMonth = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth() - 1,
-      1,
-      12,
-      0,
-      0,
-    );
-    // Reset selected date to first available day of new month
-    const year = newMonth.getFullYear();
-    const month = newMonth.getMonth();
-    const firstAvailableDay =
-      year === today.getFullYear() && month === today.getMonth()
-        ? today.getDate()
-        : 1;
-    const newDate = new Date(year, month, firstAvailableDay, 12, 0, 0);
-    updateUrlDate(newDate);
-  };
-
-  const handleNextMonth = () => {
-    const newMonth = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth() + 1,
-      1,
-      12,
-      0,
-      0,
-    );
-    // Reset selected date to first available day of new month
-    const year = newMonth.getFullYear();
-    const month = newMonth.getMonth();
-    const firstAvailableDay =
-      year === today.getFullYear() && month === today.getMonth()
-        ? today.getDate()
-        : 1;
-    const newDate = new Date(year, month, firstAvailableDay, 12, 0, 0);
-    updateUrlDate(newDate);
-  };
-
-  const formatMonthYear = (date: Date) => {
-    const month = CATALAN_MONTHS[date.getMonth()];
-    const year = date.getFullYear().toString().slice(-2);
-    return `${month} ${year}`;
-  };
-
-  const formatDay = (date: Date) => {
-    return date.getDate().toString();
-  };
-
-  const isToday = (date: Date) => {
-    return (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
-    );
-  };
-
-  const isSelected = (date: Date) => {
-    return (
-      date.getDate() === selectedDate.getDate() &&
-      date.getMonth() === selectedDate.getMonth() &&
-      date.getFullYear() === selectedDate.getFullYear()
-    );
-  };
-
-  const isPreviousMonthInPast = useMemo(() => {
-    const previousMonth = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth() - 1,
-      1,
-      12,
-      0,
-      0,
-    );
-    const todayStart = new Date(
+    const endDate = new Date(
       today.getFullYear(),
-      today.getMonth(),
-      1,
+      today.getMonth() + 3,
+      0,
       12,
       0,
       0,
     );
-    return previousMonth < todayStart;
-  }, [currentMonth, today]);
+
+    const days: Date[] = [];
+    const current = new Date(startDate);
+    while (current <= endDate) {
+      days.push(new Date(current));
+      current.setDate(current.getDate() + 1);
+    }
+    return days;
+  }, [today, isAdminOrTeacher]);
+
+  const daysByMonth = useMemo(() => {
+    const groups: { key: string; monthIndex: number; days: Date[] }[] = [];
+    for (const day of daysRange) {
+      const key = `${day.getFullYear()}-${day.getMonth()}`;
+      const last = groups[groups.length - 1];
+      if (!last || last.key !== key) {
+        groups.push({
+          key,
+          monthIndex: day.getMonth(),
+          days: [day],
+        });
+      } else {
+        last.days.push(day);
+      }
+    }
+    return groups;
+  }, [daysRange]);
+
+  const isToday = (date: Date) =>
+    date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear();
+
+  const isSelected = (date: Date) =>
+    date.getDate() === selectedDate.getDate() &&
+    date.getMonth() === selectedDate.getMonth() &&
+    date.getFullYear() === selectedDate.getFullYear();
+
+  const isPastDay = (date: Date) => {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return d < t;
+  };
 
   // Scroll selected date to center
   useEffect(() => {
@@ -212,56 +171,49 @@ export function Timetable() {
         behavior: "smooth",
       });
     }
-  }, [selectedDate, currentMonth]);
+  }, [selectedDate]);
 
   return (
     <div className="flex flex-col gap-4">
       <div className="sticky top-0 z-10 bg-background">
-        {/* Month Navigation */}
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handlePreviousMonth}
-            disabled={isPreviousMonthInPast}
-            className="h-8 w-8"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <h3 className="text-lg font-semibold">
-            {formatMonthYear(currentMonth)}
-          </h3>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleNextMonth}
-            className="h-8 w-8"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-
         {/* Scrollable Days List */}
         <div
           ref={scrollContainerRef}
-          className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden items-end"
         >
-          {daysInMonth.map((day) => (
-            <Button
-              key={formatDateLocal(day)}
-              data-date={formatDateLocal(day)}
-              variant={isSelected(day) ? "default" : "outline"}
-              onClick={() => updateUrlDate(day)}
-              className={cn(
-                "min-w-[50px] flex flex-col gap-1 h-auto py-2 px-3",
-                isToday(day) && !isSelected(day) && "border-2 border-primary",
-              )}
-            >
-              <span className="text-xs text-muted-foreground">
-                {CATALAN_WEEKDAYS[(day.getDay() + 6) % 7]}
-              </span>
-              <span className="text-base font-semibold">{formatDay(day)}</span>
-            </Button>
+          {daysByMonth.map((group) => (
+            <div key={group.key} className="flex shrink-0 items-end gap-2">
+              <div
+                className={cn(
+                  "sticky left-0 z-10 h-20 flex items-end self-stretch border-r border-border/60 bg-background pb-2 pr-2",
+                  "text-xs font-semibold text-primary",
+                )}
+              >
+                {CATALAN_MONTHS[group.monthIndex]}
+              </div>
+              <div className="flex gap-2 items-end mb-2">
+                {group.days.map((day) => (
+                  <Button
+                    key={formatDateLocal(day)}
+                    data-date={formatDateLocal(day)}
+                    variant={isSelected(day) ? "default" : "outline"}
+                    onClick={() => updateUrlDate(day)}
+                    className={cn(
+                      "min-w-[50px] flex flex-col gap-1 h-auto py-2 px-3",
+                      isToday(day) && "border-2 border-primary",
+                      isPastDay(day) && !isSelected(day) && "opacity-50",
+                    )}
+                  >
+                    <span className="text-xs  text-muted-foreground">
+                      {CATALAN_WEEKDAYS[(day.getDay() + 6) % 7]}
+                    </span>
+                    <span className="text-base font-semibold">
+                      {day.getDate()}
+                    </span>
+                  </Button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -273,17 +225,29 @@ export function Timetable() {
             Carregant sessions...
           </div>
         ) : !sessions || sessions.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8">
-            No hi ha sessions disponibles per aquest dia
-          </div>
+          <EmptyState
+            icon={<CalendarIcon className="w-10 h-10 text-muted-foreground" />}
+            message={`No hi ha classes programades pel ${catalanIntlDayFormatter.format(selectedDate)}`}
+          />
         ) : (
           <div className="space-y-3">
             {sessions.map((session) => (
-              <SessionCard key={session.id} session={session} />
+              <SessionCard
+                key={session.id}
+                session={session}
+                onSelect={setSelectedSessionId}
+              />
             ))}
           </div>
         )}
       </div>
+      <SessionReservationDialog
+        session={
+          sessions?.find((session) => session.id === selectedSessionId) ?? null
+        }
+        open={selectedSessionId !== null}
+        onOpenChange={() => setSelectedSessionId(null)}
+      />
     </div>
   );
 }

@@ -1,17 +1,10 @@
 "use client";
 
 import { useUser } from "@/context/user-context";
-import { useUpdateUser } from "@/hooks/api/users";
+import { HowDidYouFindUs, useUpdateUser } from "@/hooks/api/users";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useState } from "react";
 import { toast } from "sonner";
-
-export enum HowDidYouFindUs {
-  FRIENDS = "friends",
-  SOCIAL_MEDIA = "socialMedia",
-  ADVERTISEMENT = "advertisement",
-  OTHER = "other",
-}
 
 export const OnboardingProcessContext =
   createContext<OnboardingProcessContextType | null>(null);
@@ -35,7 +28,7 @@ export function OnboardingProcessProvider({
 
   const handleSetOnboardingData = (
     key: keyof OnboardingProcessContextType["onboardingData"],
-    value: string | Date | boolean
+    value: string | Date | boolean,
   ) => {
     setOnboardingData((prev) => ({
       ...prev,
@@ -55,7 +48,9 @@ export function OnboardingProcessProvider({
     }
   };
 
-  const { mutateAsync: submitOnboardingMutation, isPending } = useUpdateUser();
+  const { mutateAsync: submitOnboardingMutation, isPending } = useUpdateUser({
+    userId: user?.id,
+  });
 
   const submitOnboarding = async () => {
     try {
@@ -104,7 +99,7 @@ export function useOnboardingProcess() {
   const context = useContext(OnboardingProcessContext);
   if (!context) {
     throw new Error(
-      "useOnboardingProcess must be used within a OnboardingProcessProvider"
+      "useOnboardingProcess must be used within a OnboardingProcessProvider",
     );
   }
   return context;
@@ -122,7 +117,7 @@ export interface OnboardingProcessContextType {
   };
   handleSetOnboardingData: (
     key: keyof OnboardingProcessContextType["onboardingData"],
-    value: string | Date | boolean
+    value: string | Date | boolean,
   ) => void;
   currentStep: number;
   nextStep: () => void;

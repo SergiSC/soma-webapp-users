@@ -1,5 +1,3 @@
-import { HowDidYouFindUs } from "@/components/onboarding-process/context";
-
 // API configuration
 const SOMA_API_BASE_URL =
   process.env.NEXT_PUBLIC_SOMA_API_URL || "http://localhost:3001";
@@ -329,50 +327,4 @@ if (process.env.NODE_ENV === "development") {
     });
     return data;
   });
-}
-
-// Example API functions - replace with your actual endpoints
-export const api = {
-  // User-related endpoints
-  users: {
-    login: (credentials: LoginRequest) =>
-      apiClient.post<User>("/users/login", {
-        externalId: credentials.externalId,
-        email: credentials.email,
-        emailVerified: credentials.emailVerified,
-      }),
-    update: (user: Partial<User> & { id: string }) =>
-      apiClient.patch<User>(`/users/${user.id}`, user),
-  },
-};
-
-export enum UserType {
-  TEACHER = "teacher",
-  CLIENT = "client",
-  ADMIN = "admin",
-}
-
-export interface User {
-  id: string;
-  externalId: string;
-  type: UserType;
-  name: string | null;
-  surname: string | null;
-  email: string;
-  emailVerifiedAt: string | null;
-  birthDate: string | null;
-  languageCode: string;
-  profileImageUrl: string | null;
-  missedSessionsCount: number;
-  onboardingCompletedAt: string | null;
-  postalCode: string | null;
-  howDidYouFindUs: HowDidYouFindUs | null;
-  createdAt: string;
-  updatedAt: string | null;
-  deletedAt: string | null;
-}
-export interface LoginRequest {
-  externalId: string;
-  email: string;
-  emailVerified: boolean;
 }
