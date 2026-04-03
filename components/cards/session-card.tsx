@@ -1,5 +1,5 @@
 import { DailySession } from "@/hooks/api/daily-sessions";
-import { SessionLevelEnum } from "@/hooks/api/sessions";
+import { SessionLevelEnum, SessionStatus } from "@/hooks/api/sessions";
 import {
   Card,
   CardContent,
@@ -19,6 +19,7 @@ import {
   sessionColorsRecord,
   sessionLevelToLabel,
   sessionTypeToLabel,
+  sessionStatusColorRecord
 } from "@/lib/constants";
 import { useUser } from "@/context/user-context";
 
@@ -48,10 +49,31 @@ export function SessionCard({
     ? confirmedReservations.count >= session.room.capacity
     : false;
 
+  const canReserve = session.status === SessionStatus.PUBLISHED;
+
+  const reserveButtonLabel = (() => {
+    if (!canReserve) {
+      switch (session.status) {
+        case SessionStatus.COMPLETED:
+          return "Finalitzada";
+        case SessionStatus.CANCELLED:
+          return "Cancel·lada";
+        default:
+          return "No disponible";
+      }
+    }
+    if (roomAtFullCapacity) return "Completa";
+    if (confirmedReservations.userIds.includes(user?.id ?? "")) return "Reservada";
+    return "Reservar";
+  })();
+
   return (
     <Card
       className={cn(
         "transition-all hover:shadow-md cursor-pointer ",
+        session.status === SessionStatus.COMPLETED &&
+          "opacity-[0.72] saturate-[0.65]",
+        session.status === SessionStatus.CANCELLED && "opacity-[0.78]",
         className,
       )}
     >
@@ -93,16 +115,16 @@ export function SessionCard({
         </div>
         <Button
           variant="outline"
-          disabled={!!existingReservationType || roomAtFullCapacity}
+          disabled={
+            !canReserve ||
+            !!existingReservationType ||
+            roomAtFullCapacity
+          }
           size="sm"
           className="mt-auto w-fit absolute bottom-4 right-4"
           onClick={() => onSelect(session.id)}
         >
-          {roomAtFullCapacity
-            ? "Completa"
-            : confirmedReservations.userIds.includes(user?.id ?? "")
-              ? "Reservada"
-              : "Reservar"}
+          {reserveButtonLabel}
         </Button>
       </CardContent>
       <SessionCardFooter session={session} />
@@ -113,8 +135,7 @@ export function SessionCard({
 function SessionCardFooter({ session }: { session: DailySession }) {
   const router = useRouter();
   const { user } = useUser();
-  console.log(user);
-  if (user?.type !== UserType.ADMIN && user?.type !== UserType.TEACHER) {
+  if (user?.type === UserType.CLIENT || user?.type === undefined) {
     return null;
   }
   return (
@@ -132,11 +153,18 @@ function SessionCardHeader({ session }: { session: DailySession }) {
   const formatTime = (time: string) => {
     return time.slice(0, 5);
   };
-  const sessionColor = sessionColorsRecord[session.type];
+  const isSessionCompleted = session.status === SessionStatus.COMPLETED;
+  const isSessionCancelled = session.status === SessionStatus.CANCELLED;
+  const sessionColor = isSessionCancelled 
+    ? sessionStatusColorRecord[SessionStatus.CANCELLED] 
+    : isSessionCompleted 
+      ? sessionStatusColorRecord[SessionStatus.COMPLETED] 
+      : sessionColorsRecord[session.type];
+
   return (
     <CardHeader
       className="flex flex-row space-between items-center justify-between rounded-t-md"
-      style={{ backgroundColor: `${sessionColor}50` }}
+      style={{ backgroundColor:  `${sessionColor}50` }}
     >
       <CardTitle>{sessionTypeToLabel[session.type]}</CardTitle>
       <CardDescription className="text-md text-muted-foreground font-semibold">

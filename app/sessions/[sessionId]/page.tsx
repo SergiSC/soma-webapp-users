@@ -1,9 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { PageSkeleton } from "@/components/page-skeleton";
-import { useSession, SessionStatus } from "@/hooks/api/sessions";
+import {
+  useSession,
+  SessionStatus,
+  SessionWithReservations,
+} from "@/hooks/api/sessions";
 import { ReservationStatus } from "@/hooks/api/reservations";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +24,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { useUser } from "@/context/user-context";
 import { UserType } from "@/hooks/api/users";
-import { Reservation, useTakeAttendance } from "@/hooks/api/reservations";
+import { useTakeAttendance } from "@/hooks/api/reservations";
 import { SuperAdminButton } from "@/components/super-admin.button";
 import {
   reservationStatusToLabel,
@@ -66,7 +71,7 @@ export default function SessionPage() {
   // Redirect clients away from this page
   useEffect(() => {
     if (user.user?.type === undefined || user.user.type === UserType.CLIENT) {
-      router.replace("/timetable");
+      router.replace("/reservations");
     }
   }, [user.user?.type, router]);
 
@@ -237,6 +242,7 @@ export default function SessionPage() {
             <>
               <SuperAdminButton
                 label="Passar llista"
+                disabled={session.status !== SessionStatus.PUBLISHED}
                 onClick={handleOpenAttendanceDialog}
               />
               <Dialog
@@ -265,9 +271,6 @@ export default function SessionPage() {
                               <span className="text-sm font-medium">
                                 {reservation.user.name}{" "}
                                 {reservation.user.surname}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                {reservation.product?.name ?? "Sense producte"}
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -324,7 +327,7 @@ export default function SessionPage() {
 }
 
 interface ReservationsListProps {
-  reservations: Reservation[];
+  reservations: SessionWithReservations["reservations"];
 }
 
 function formatDateTime(dateString: string): string {
@@ -353,30 +356,17 @@ function ReservationsList({ reservations }: ReservationsListProps) {
   return (
     <div className="divide-y">
       {reservations.map((reservation) => {
-        const productType = reservation.subscriptionId
-          ? "Subscripció"
-          : reservation.packId
-            ? "Pack"
-            : null;
-
         return (
-          <div
+          <Link
             key={reservation.id}
-            className="flex w-full items-center justify-between p-4 transition-colors hover:bg-muted/50"
+            href={`/users/${reservation.user.id}`}
+            className="flex w-full items-center justify-between p-4 transition-colors hover:bg-muted/50 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div className="flex items-center gap-3">
               <div className="flex flex-col gap-1">
-                <span className="text-sm font-medium">
+                <span className="text-sm font-medium text-primary underline-offset-4 hover:underline">
                   {reservation.user.name} {reservation.user.surname}
                 </span>
-                {reservation.product && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      {productType}:
-                    </span>
-                    <Badge variant="outline">{reservation.product.name}</Badge>
-                  </div>
-                )}
                 <span className="text-xs text-muted-foreground">
                   Creada: {formatDateTime(reservation.createdAt)}
                   {reservation.updatedAt && (
@@ -391,7 +381,7 @@ function ReservationsList({ reservations }: ReservationsListProps) {
             <Badge variant={reservationStatusToVariant[reservation.status]}>
               {reservationStatusToLabel[reservation.status]}
             </Badge>
-          </div>
+          </Link>
         );
       })}
     </div>

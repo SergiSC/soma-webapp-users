@@ -26,8 +26,8 @@ export function NavBar() {
         </NavBarItem>
         <NavBarItem
           icon={CalendarIcon}
-          to="/timetable"
-          selected={pathname.includes("timetable")}
+          to="/sessions"
+          selected={pathname.includes("sessions")}
         >
           Horari
         </NavBarItem>
@@ -40,7 +40,7 @@ export function NavBar() {
         </NavBarItem>
         <NavBarItem
           to="/me"
-          selected={pathname === "/me"}
+          selected={pathname.includes("me")}
           icon={UserCircleIcon}
         >
           Perfil

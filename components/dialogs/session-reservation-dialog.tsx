@@ -1,5 +1,9 @@
 import { DailySession } from "@/hooks/api/daily-sessions";
-import { SessionTypeEnum, SessionLevelEnum } from "@/hooks/api/sessions";
+import {
+  SessionTypeEnum,
+  SessionLevelEnum,
+  SessionStatus,
+} from "@/hooks/api/sessions";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -179,6 +183,10 @@ function SessionReservationDialogFooter({
   session: DailySession;
   setIsProductSelectorOpen: (open: boolean) => void;
 }) {
+  const canReserve = session.status === SessionStatus.PUBLISHED;
+  const isFull =
+    session.confirmedReservations.count === session.room?.capacity;
+
   return (
     <DialogFooter className="flex flex-col gap-4  border-t border-border/50 pt-4">
       <Button
@@ -186,13 +194,17 @@ function SessionReservationDialogFooter({
         onClick={() => {
           setIsProductSelectorOpen(true);
         }}
-        disabled={
-          session.confirmedReservations.count === session.room?.capacity
-        }
+        disabled={!canReserve || isFull}
       >
-        {session.confirmedReservations.count === session.room?.capacity
-          ? "Completa"
-          : "Reservar"}
+        {!canReserve
+          ? session.status === SessionStatus.COMPLETED
+            ? "Sessió finalitzada"
+            : session.status === SessionStatus.CANCELLED
+              ? "Sessió cancel·lada"
+              : "Reservar"
+          : isFull
+            ? "Completa"
+            : "Reservar"}
       </Button>
     </DialogFooter>
   );

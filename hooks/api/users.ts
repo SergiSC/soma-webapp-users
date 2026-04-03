@@ -42,6 +42,8 @@ export interface UserObject {
   createdAt: string;
   updatedAt: string | null;
   deletedAt: string | null;
+  packIds: string[];
+  subscriptionId: string | null;
 }
 
 export interface AggregatedUserObject extends UserObject {

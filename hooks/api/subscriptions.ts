@@ -1,20 +1,18 @@
 import { apiClient } from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { SubscriptionAggregate } from "@/lib/entities/subscription";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // API functions
 const subscriptionsApi = {
   cancel: (subscriptionId: string) =>
     apiClient.delete<void>(`/subscriptions/${subscriptionId}`),
-  deleteCanceled: (subscriptionId: string) =>
-    apiClient.delete<void>(
-      `/subscriptions/${subscriptionId}/already-cancelled`
-    ),
-  payOnDemand: (subscriptionId: string) =>
-    apiClient.post<void>(`/subscriptions/${subscriptionId}/pay-on-demand`),
+
+  get: (subscriptionId: string) =>
+    apiClient.get<SubscriptionAggregate>(`/subscriptions/${subscriptionId}`),
   change: (subscriptionId: string, productId: string) =>
     apiClient.patch<void>(
-      `/subscriptions/${subscriptionId}/product/${productId}`
+      `/subscriptions/${subscriptionId}/product/${productId}`,
     ),
 };
 
@@ -30,31 +28,6 @@ export function useCancelSubscription() {
     },
     onError: (error: Error) => {
       toast.error(`Error al cancel·lar la subscripció: ${error.message}`);
-    },
-  });
-}
-
-export function useDeleteCanceledSubscription() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: subscriptionsApi.deleteCanceled,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-information"] });
-      toast.success("Subscripció eliminada correctament");
-    },
-  });
-}
-
-// TODO: This is not implemented yet
-export function usePayOnDemandSubscription() {
-  return useMutation({
-    mutationFn: subscriptionsApi.payOnDemand,
-    onSuccess: () => {
-      toast.success("Subscripció renovada correctament");
-    },
-    onError: (error: Error) => {
-      toast.error(`Error al renovar la subscripció: ${error.message}`);
     },
   });
 }
@@ -77,5 +50,13 @@ export function useChangeSubscription() {
     onError: (error: Error) => {
       toast.error(`Error al modificar la subscripció: ${error.message}`);
     },
+  });
+}
+
+export function useSubscriptionAggregate(subscriptionId?: string) {
+  return useQuery({
+    queryKey: ["subscription", subscriptionId],
+    queryFn: () => subscriptionsApi.get(subscriptionId ?? ""),
+    enabled: !!subscriptionId,
   });
 }

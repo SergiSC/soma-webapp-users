@@ -15,6 +15,13 @@ export const sessionColorsRecord: Record<SessionTypeEnum, string> = {
   [SessionTypeEnum.FIT_MIX_PLUS_65]: "#ea4335",
 };
 
+export const sessionStatusColorRecord: Record<SessionStatus, string> = {
+  [SessionStatus.DRAFT]: "#f4b400",
+  [SessionStatus.PUBLISHED]: "#4285f4",
+  [SessionStatus.CANCELLED]: "#f36060",
+  [SessionStatus.COMPLETED]: "#6e6e6e",
+};
+
 export const sessionTypeToLabel: Record<SessionTypeEnum, string> = {
   [SessionTypeEnum.PILATES_REFORMER]: "Pilates Reformer",
   [SessionTypeEnum.PILATES_REFORMER_PRE_NATAL]: "Pilates Reformer Pre Natal",
