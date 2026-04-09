@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ProductTypeEnum, useProducts } from "@/hooks/api/products";
 import { Label } from "@radix-ui/react-label";
 
-interface ChangeSubscriptionModalProps {
+interface ChangeSubscriptionDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   originalProductId: string;
@@ -23,7 +23,7 @@ interface ChangeSubscriptionModalProps {
   onConfirm: () => void;
 }
 
-export function ChangeSubscriptionModal({
+export function ChangeSubscriptionDialog({
   isOpen,
   onOpenChange,
   originalProductId,
@@ -31,7 +31,7 @@ export function ChangeSubscriptionModal({
   onSelectProduct,
   onClose,
   onConfirm,
-}: ChangeSubscriptionModalProps) {
+}: ChangeSubscriptionDialogProps) {
   const { data: products } = useProducts({
     type: [ProductTypeEnum.SUBSCRIPTION, ProductTypeEnum.SUBSCRIPTION_COMBO],
   });
@@ -39,8 +39,20 @@ export function ChangeSubscriptionModal({
   const existingProducts = Object.values(products?.items || {}).flat();
 
   const originalProduct = existingProducts.find(
-    (product) => product.id === originalProductId
+    (product) => product.id === originalProductId,
   );
+
+  if (!originalProduct) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogHeader className="text-start">
+            <DialogTitle>Aquesta subscripció no es pot canviar</DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

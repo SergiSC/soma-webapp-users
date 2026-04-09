@@ -150,17 +150,11 @@ const reservationsApi = {
       `${url}?${queryParams.toString()}`,
     );
   },
-  createFromSubscription: (data: CreateReservationFromSubscriptionRequest) =>
-    apiClient.post<Reservation>("/reservations/from-subscription", data),
-
-  createFromPack: (data: CreateReservationFromPackRequest) =>
-    apiClient.post<Reservation>("/reservations/from-pack", data),
-
-  createFromComboSubscription: (
-    data: CreateReservationFromComboSubscriptionRequest,
-  ) =>
-    apiClient.post<Reservation>("/reservations/from-combo-subscription", data),
-
+  listCurrentWeek: (userId: string, subscriptionId: string) => {
+    return apiClient.get<PaginatedResult<AggregatedReservationJsonObject>>(
+      `/users/${userId}/reservations/current-week?subscriptionId=${subscriptionId}`,
+    );
+  },
   cancel: (reservationId: string) =>
     apiClient.delete<void>(`/reservations/${reservationId}`),
 
@@ -191,6 +185,17 @@ export function useUserReservations(
   });
 }
 
+export function useUserCurrentWeekReservations(
+  userId: string | undefined,
+  subscriptionId: string | undefined,
+) {
+  return useQuery({
+    queryKey: ["user-current-week-reservations", userId, subscriptionId],
+    queryFn: () => reservationsApi.listCurrentWeek(userId!, subscriptionId!),
+    enabled: !!userId && !!subscriptionId,
+  });
+}
+
 export function useInfiniteUserReservations(
   userId: string | undefined,
   filter: ReservationListFilterEnum,
@@ -210,56 +215,6 @@ export function useInfiniteUserReservations(
     staleTime: 5 * 60 * 1000,
   });
 }
-export function useCreateReservationFromSubscription() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: reservationsApi.createFromSubscription,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-information"] });
-      queryClient.invalidateQueries({ queryKey: ["daily-sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      toast.success("Reserva creada correctament");
-    },
-    onError: (error: Error) => {
-      toast.error(`Error al crear la reserva: ${error.message}`);
-    },
-  });
-}
-
-export function useCreateReservationFromPack() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: reservationsApi.createFromPack,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-information"] });
-      queryClient.invalidateQueries({ queryKey: ["daily-sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      toast.success("Reserva creada correctament");
-    },
-    onError: (error: Error) => {
-      toast.error(`Error al crear la reserva: ${error.message}`);
-    },
-  });
-}
-
-export function useCreateReservationFromComboSubscription() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: reservationsApi.createFromComboSubscription,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-information"] });
-      queryClient.invalidateQueries({ queryKey: ["daily-sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      toast.success("Reserva creada correctament");
-    },
-    onError: (error: Error) => {
-      toast.error(`Error al crear la reserva: ${error.message}`);
-    },
-  });
-}
 
 export function useCancelReservation() {
   const queryClient = useQueryClient();
@@ -275,22 +230,6 @@ export function useCancelReservation() {
     onError: (error: Error) => {
       toast.error(`Error al cancel·lar la reserva: ${error.message}`);
     },
-  });
-}
-
-export function useCanMakeReservation(
-  userId: string | undefined,
-  sessionId: string | undefined,
-) {
-  return useQuery({
-    queryKey: ["can-make-reservation", userId, sessionId],
-    queryFn: () =>
-      reservationsApi.canMakeReservation({
-        userId: userId!,
-        sessionId: sessionId!,
-      }),
-    enabled: !!userId && !!sessionId,
-    staleTime: 30 * 1000, // 30 seconds
   });
 }
 

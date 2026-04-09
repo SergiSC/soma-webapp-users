@@ -33,14 +33,31 @@ function getReservationDate(
   return new Date(Number(year), Number(month) - 1, Number(day));
 }
 
+/** Local Monday 00:00 of the ISO-style week that contains `reference`. */
+function startOfMondayWeek(reference: Date): Date {
+  const d = new Date(reference);
+  d.setHours(0, 0, 0, 0);
+  const daysFromMonday = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - daysFromMonday);
+  return d;
+}
+
+/** Past sessions from local Monday of the current week through today (inclusive). */
+function isInUltimaSetmanaSection(sessionDay: Date, today: Date): boolean {
+  const d = new Date(sessionDay);
+  d.setHours(0, 0, 0, 0);
+  const t = new Date(today);
+  t.setHours(0, 0, 0, 0);
+  if (d > t) return false;
+  const monday = startOfMondayWeek(t);
+  return d >= monday && d <= t;
+}
+
 function groupReservations(
   reservations: AggregatedReservationJsonObject[],
 ): ReservationGroup[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
-  const oneWeekAgo = new Date(today);
-  oneWeekAgo.setDate(today.getDate() - 7);
 
   const groupMap = new Map<string, AggregatedReservationJsonObject[]>();
   const groupOrder: string[] = [];
@@ -49,7 +66,7 @@ function groupReservations(
     const date = getReservationDate(reservation);
 
     let key: string;
-    if (date >= oneWeekAgo && date <= today) {
+    if (isInUltimaSetmanaSection(date, today)) {
       key = "__last_week__";
     } else {
       const [year, month] = reservation.session.schedule.day.split("-");
@@ -63,10 +80,16 @@ function groupReservations(
     groupMap.get(key)!.push(reservation);
   }
 
-  return groupOrder.map((key) => {
+  const sortedKeys = [...groupOrder].sort((a, b) => {
+    if (a === "__last_week__") return -1;
+    if (b === "__last_week__") return 1;
+    return b.localeCompare(a);
+  });
+
+  return sortedKeys.map((key) => {
     let label: string;
     if (key === "__last_week__") {
-      label = "Última setmana";
+      label = "Aquesta setmana";
     } else {
       const [year, month] = key.split("-");
       const date = new Date(Number(year), Number(month) - 1, 1);
@@ -149,6 +172,12 @@ export function ReservationsList({ filter }: ReservationsListProps) {
         <EmptyState
           icon={<CalendarIcon className="size-10 text-muted-foreground" />}
           message={`No tens cap reserva ${filter === ReservationListFilterEnum.FUTURE ? "pròximament" : "completada"}`}
+          button={{
+            text: "Reservar classe",
+            onClick: () => {
+              router.push("/sessions");
+            },
+          }}
         />
       ) : filter === ReservationListFilterEnum.PAST ? (
         <div className="flex flex-col gap-4">

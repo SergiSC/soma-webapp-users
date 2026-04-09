@@ -1,6 +1,4 @@
 import { ProductRecurring } from "@/hooks/api/products";
-import { ReservationStatus } from "@/hooks/api/reservations";
-import { SessionTypeEnum } from "@/hooks/api/sessions";
 
 export interface SubscriptionAggregate {
   id: string;
@@ -20,14 +18,10 @@ export interface SubscriptionAggregate {
     name: string | null;
     recurring: ProductRecurring | null;
   } | null;
-  fromDate: Date;
-  toDate: Date;
-  createdAt: Date;
-  updatedAt: Date | null;
-  cancelledAt: Date | null;
-  currentWeekReservations: {
-    status: ReservationStatus;
-    id: string;
-    sessionType: SessionTypeEnum | null;
-  }[];
+  fromDate: string;
+  toDate: string;
+  createdAt: string;
+  updatedAt: string | null;
+  cancelledAt: string | null;
+  errorMessage: string | null;
 }

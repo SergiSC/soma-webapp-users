@@ -5,14 +5,15 @@ import { toast } from "sonner";
 
 // API functions
 const subscriptionsApi = {
-  cancel: (subscriptionId: string) =>
-    apiClient.delete<void>(`/subscriptions/${subscriptionId}`),
-
-  get: (subscriptionId: string) =>
-    apiClient.get<SubscriptionAggregate>(`/subscriptions/${subscriptionId}`),
-  change: (subscriptionId: string, productId: string) =>
+  cancel: (userId: string, subscriptionId: string) =>
+    apiClient.delete<void>(`/users/${userId}/subscriptions/${subscriptionId}`),
+  get: (userId: string, subscriptionId: string) =>
+    apiClient.get<SubscriptionAggregate>(
+      `/users/${userId}/subscriptions/${subscriptionId}`,
+    ),
+  change: (userId: string, subscriptionId: string, productId: string) =>
     apiClient.patch<void>(
-      `/subscriptions/${subscriptionId}/product/${productId}`,
+      `/users/${userId}/subscriptions/${subscriptionId}/product/${productId}`,
     ),
 };
 
@@ -21,9 +22,15 @@ export function useCancelSubscription() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: subscriptionsApi.cancel,
+    mutationFn: ({
+      userId,
+      subscriptionId,
+    }: {
+      userId: string;
+      subscriptionId: string;
+    }) => subscriptionsApi.cancel(userId, subscriptionId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-information"] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
       toast.success("Subscripció cancel·lada correctament");
     },
     onError: (error: Error) => {
@@ -37,14 +44,16 @@ export function useChangeSubscription() {
 
   return useMutation({
     mutationFn: ({
+      userId,
       subscriptionId,
       productId,
     }: {
+      userId: string;
       subscriptionId: string;
       productId: string;
-    }) => subscriptionsApi.change(subscriptionId, productId),
+    }) => subscriptionsApi.change(userId, subscriptionId, productId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-information"] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
       toast.success("Subscripció modificada correctament");
     },
     onError: (error: Error) => {
@@ -53,10 +62,13 @@ export function useChangeSubscription() {
   });
 }
 
-export function useSubscriptionAggregate(subscriptionId?: string) {
+export function useSubscriptionAggregate(
+  userId?: string,
+  subscriptionId?: string,
+) {
   return useQuery({
-    queryKey: ["subscription", subscriptionId],
-    queryFn: () => subscriptionsApi.get(subscriptionId ?? ""),
-    enabled: !!subscriptionId,
+    queryKey: ["subscription", userId, subscriptionId],
+    queryFn: () => subscriptionsApi.get(userId!, subscriptionId!),
+    enabled: !!userId && !!subscriptionId,
   });
 }
