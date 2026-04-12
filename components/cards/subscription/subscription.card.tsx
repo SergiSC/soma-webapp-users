@@ -83,10 +83,8 @@ export function SubscriptionCard() {
         isOpen={openChangeSubscriptionDialog}
         onOpenChange={setOpenChangeSubscriptionDialog}
         originalProductId={subscriptionAggregate.product.id}
-        selectedProductId={undefined}
-        onClose={() => {}}
-        onSelectProduct={() => {}}
-        onConfirm={() => {}}
+        subscriptionId={subscriptionAggregate.id}
+        onClose={() => setOpenChangeSubscriptionDialog(false)}
       />
     </>
   );
@@ -118,6 +116,22 @@ function SubscriptionCardHeader({ subscription }: SubscriptionCardProps) {
 function SubscriptionCardDetails({ subscription }: SubscriptionCardProps) {
   return (
     <div className="space-y-3 text-sm">
+      {subscription.cancelledAt ? (
+        <DetailRow
+          label="Cancel·lada"
+          value={`${formatPeriodInstant(subscription.cancelledAt)}. Podràs fer reserves fins l'últim dia del període actual.`}
+          variant="destructive"
+          className="text-destructive"
+        />
+      ) : null}
+      {subscription.nextPeriodProduct && !subscription.cancelledAt ? (
+        <DetailRow
+          label="Subscripció actualitzada"
+          value={`S'ha canviat la subscripció per al pròxim període. Nou producte: ${subscription.nextPeriodProduct.name ?? "—"}`}
+          variant="info"
+          className="text-muted-foreground"
+        />
+      ) : null}
       {subscription.errorMessage ? (
         <div className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-destructive">
           <p className="font-medium">Avís</p>
@@ -140,13 +154,6 @@ function SubscriptionCardDetails({ subscription }: SubscriptionCardProps) {
           value={formatPeriodInstant(subscription.updatedAt)}
         />
       ) : null}
-      {subscription.cancelledAt ? (
-        <DetailRow
-          label="Cancel·lada"
-          value={formatPeriodInstant(subscription.cancelledAt)}
-          className="text-destructive"
-        />
-      ) : null}
 
       <div className="space-y-2 border-t pt-3">
         <ul className="mt-1 space-y-1 text-muted-foreground">
@@ -160,34 +167,6 @@ function SubscriptionCardDetails({ subscription }: SubscriptionCardProps) {
           ))}
         </ul>
       </div>
-
-      {subscription.nextPeriodProduct ? (
-        <div className="space-y-2 border-t pt-3">
-          <p className="font-medium text-foreground">
-            Producte del proper període
-          </p>
-          <div className="space-y-2 text-muted-foreground">
-            <div>
-              <span className="font-medium text-foreground">Nom: </span>
-              {subscription.nextPeriodProduct.name ?? "—"}
-            </div>
-            {subscription.nextPeriodProduct.recurring ? (
-              <ul className="space-y-1">
-                {recurringDetailLines(
-                  subscription.nextPeriodProduct.recurring,
-                ).map((line) => (
-                  <li key={line.label}>
-                    <span className="font-medium text-foreground">
-                      {line.label}:{" "}
-                    </span>
-                    {line.value}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -196,13 +175,23 @@ function DetailRow({
   label,
   value,
   className,
+  variant = "default",
 }: {
   label: string;
   value: string;
   className?: string;
+  variant?: "default" | "destructive" | "info";
 }) {
   return (
-    <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
+    <div
+      className={cn(
+        "flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3",
+        variant === "destructive" &&
+          "text-destructive border-destructive/40 bg-destructive/5 px-3 py-2",
+        variant === "info" &&
+          "text-muted-foreground border-muted-foreground/20 bg-secondary/80 px-3 py-2",
+      )}
+    >
       <span
         className={cn(
           "shrink-0 font-bold text-muted-foreground sm:min-w-40",
@@ -282,14 +271,16 @@ function SubscriptionCardFooter({
 }: SubscriptionCardFooterProps) {
   return (
     <CardFooter className="flex flex-row gap-2 justify-end">
-      <Button
-        variant="outline"
-        type="button"
-        className="w-fit"
-        onClick={onChangeClick}
-      >
-        Canviar
-      </Button>
+      {subscription.cancelledAt ? null : (
+        <Button
+          variant="outline"
+          type="button"
+          className="w-fit"
+          onClick={onChangeClick}
+        >
+          Canviar
+        </Button>
+      )}
       <Button
         type="button"
         className="w-fit"
@@ -297,7 +288,7 @@ function SubscriptionCardFooter({
         disabled={subscription.cancelledAt !== null}
         onClick={onCancelClick}
       >
-        Cancel·lar
+        {subscription.cancelledAt ? "Cancel·lada" : "Cancel·lar"}
       </Button>
     </CardFooter>
   );

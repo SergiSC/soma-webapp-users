@@ -29,8 +29,11 @@ export function useCancelSubscription() {
       userId: string;
       subscriptionId: string;
     }) => subscriptionsApi.cancel(userId, subscriptionId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+    onSuccess: (_, { userId, subscriptionId }) => {
+      queryClient.invalidateQueries({ queryKey: ["user", userId] });
+      queryClient.invalidateQueries({
+        queryKey: ["subscription", userId, subscriptionId],
+      });
       toast.success("Subscripció cancel·lada correctament");
     },
     onError: (error: Error) => {

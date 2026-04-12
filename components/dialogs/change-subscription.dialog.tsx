@@ -10,31 +10,47 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useUser } from "@/context/user-context";
 import { ProductTypeEnum, useProducts } from "@/hooks/api/products";
+import { useChangeSubscription } from "@/hooks/api/subscriptions";
 import { Label } from "@radix-ui/react-label";
+import { useState } from "react";
 
 interface ChangeSubscriptionDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  subscriptionId: string;
   originalProductId: string;
-  selectedProductId: string | undefined;
-  onSelectProduct: (productId: string) => void;
+
   onClose: () => void;
-  onConfirm: () => void;
 }
 
 export function ChangeSubscriptionDialog({
   isOpen,
   onOpenChange,
+  subscriptionId,
   originalProductId,
-  selectedProductId,
-  onSelectProduct,
   onClose,
-  onConfirm,
 }: ChangeSubscriptionDialogProps) {
+  const [selectedProductId, setSelectedProductId] = useState<
+    string | undefined
+  >(undefined);
   const { data: products } = useProducts({
     type: [ProductTypeEnum.SUBSCRIPTION, ProductTypeEnum.SUBSCRIPTION_COMBO],
   });
+  const { user } = useUser();
+  const { mutateAsync: changeSubscription } = useChangeSubscription();
+  const onConfirm = async () => {
+    if (!user?.id || !selectedProductId) {
+      return;
+    }
+    await changeSubscription({
+      userId: user?.id,
+      subscriptionId: subscriptionId,
+      productId: selectedProductId,
+    });
+    onOpenChange(false);
+  };
 
   const existingProducts = Object.values(products?.items || {}).flat();
 
@@ -71,7 +87,10 @@ export function ChangeSubscriptionDialog({
           canvi en el moment de la pròxima facturació:
         </DialogDescription>
         <div className="flex flex-col gap-2 text-sm">
-          <RadioGroup value={selectedProductId} onValueChange={onSelectProduct}>
+          <RadioGroup
+            value={selectedProductId}
+            onValueChange={setSelectedProductId}
+          >
             {existingProducts
               .filter((product) => product.id !== originalProductId)
               .map((product) => (
