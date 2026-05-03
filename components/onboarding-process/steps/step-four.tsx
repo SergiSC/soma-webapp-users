@@ -38,7 +38,6 @@ export function StepFour({ nextStep, previousStep }: StepFourProps) {
   });
 
   const onSubmit = (data: { howDidYouFindUs: HowDidYouFindUs }) => {
-    console.log(data);
     handleSetOnboardingData("howDidYouFindUs", data.howDidYouFindUs);
     nextStep();
   };

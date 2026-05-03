@@ -35,7 +35,6 @@ export function StepTwo({ nextStep, previousStep }: StepTwoProps) {
   });
 
   const onSubmit = (data: { birthdayDate: Date }) => {
-    console.log(data);
     handleSetOnboardingData("birthdayDate", data.birthdayDate);
     nextStep();
   };

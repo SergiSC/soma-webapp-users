@@ -41,7 +41,6 @@ export function StepOne({ nextStep }: StepOneProps) {
   });
 
   const onSubmit = (data: { firstName: string; lastName: string }) => {
-    console.log(data);
     handleSetOnboardingData("firstName", data.firstName);
     handleSetOnboardingData("lastName", data.lastName);
     nextStep();

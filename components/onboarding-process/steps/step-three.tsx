@@ -37,7 +37,6 @@ export function StepThree({ nextStep, previousStep }: StepThreeProps) {
   });
 
   const onSubmit = (data: { postalCode: string }) => {
-    console.log(data);
     handleSetOnboardingData("postalCode", data.postalCode);
     nextStep();
   };
