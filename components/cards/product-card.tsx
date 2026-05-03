@@ -18,6 +18,14 @@ import { PurchaseOrRejectproductDialog } from "@/app/products/confirm-purchase";
 import { toast } from "sonner";
 import { Badge } from "../ui/badge";
 import { useChangeSubscription } from "@/hooks/api/subscriptions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 interface ProductCardProps {
   product: Product;
   userActiveProductId?: string;
@@ -29,7 +37,8 @@ export function ProductCard({
 }: ProductCardProps) {
   const [url, setUrl] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
+  const [openChangeSubscriptionDialog, setOpenChangeSubscriptionDialog] =
+    useState(false);
   const getSubtitle = () => {
     const recurring = product.recurring;
     const entries: { label: string; value: string }[] = [];
@@ -108,6 +117,7 @@ export function ProductCard({
           setUrl={setUrl}
           setIsDialogOpen={setIsDialogOpen}
           userActiveProductId={userActiveProductId}
+          setIsChangeSubscriptionDialogOpen={setOpenChangeSubscriptionDialog}
         />
       </Card>
       {url && (
@@ -121,6 +131,11 @@ export function ProductCard({
           setIsDialogOpen={setIsDialogOpen}
         />
       )}
+      <ChangeSubscriptionDialog
+        open={openChangeSubscriptionDialog}
+        onOpenChange={setOpenChangeSubscriptionDialog}
+        newProduct={product}
+      />
     </>
   );
 }
@@ -158,6 +173,9 @@ interface ProductCardFooterProps {
   setUrl: (url: string) => void;
   setIsDialogOpen: (isDialogOpen: boolean) => void;
   userActiveProductId?: string;
+  setIsChangeSubscriptionDialogOpen: (
+    isChangeSubscriptionDialogOpen: boolean,
+  ) => void;
 }
 
 function ProductCardFooter({
@@ -165,6 +183,7 @@ function ProductCardFooter({
   setUrl,
   setIsDialogOpen,
   userActiveProductId,
+  setIsChangeSubscriptionDialogOpen,
 }: ProductCardFooterProps) {
   const { hasActive, isActive } = useMemo(() => {
     return {
@@ -173,7 +192,6 @@ function ProductCardFooter({
     };
   }, [userActiveProductId, product.id]);
   const { user } = useUser();
-  const { mutateAsync: changeSubscription } = useChangeSubscription();
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePurchase = async () => {
@@ -184,11 +202,7 @@ function ProductCardFooter({
     if (hasActive) {
       try {
         if (!user?.subscriptionId) return;
-        await changeSubscription({
-          userId: user.id,
-          subscriptionId: user.subscriptionId,
-          productId: product.id,
-        });
+        setIsChangeSubscriptionDialogOpen(true);
       } catch {
         toast.error("Error al canviar la subscripció");
       }
@@ -241,6 +255,59 @@ function ProductCardFooter({
         )}
       </Button>
     </CardFooter>
+  );
+}
+
+interface ChangeSubscriptionDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  newProduct: {
+    id: string;
+    name: string;
+    stringifiedPrice: string;
+  };
+}
+
+function ChangeSubscriptionDialog({
+  open,
+  onOpenChange,
+  newProduct,
+}: ChangeSubscriptionDialogProps) {
+  const { mutateAsync: changeSubscription } = useChangeSubscription();
+  const { user } = useUser();
+  const handleChangeSubscription = async () => {
+    if (!user?.id) return;
+    if (!user?.subscriptionId) return;
+    await changeSubscription({
+      userId: user.id,
+      subscriptionId: user.subscriptionId,
+      productId: newProduct.id,
+    });
+    onOpenChange(false);
+  };
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="grid gap-6">
+        <DialogHeader className="grid gap-2">
+          <DialogTitle>Canviar subscripció</DialogTitle>
+          <DialogDescription className="text-start">
+            Estàs segur/a que vols canviar la subscripció actual a{" "}
+            <strong>{newProduct.name}</strong>?
+            <br />
+            El preu de la nova subscripció és de{" "}
+            <strong>{newProduct.stringifiedPrice}</strong> mensuals.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel·lar
+          </Button>
+          <Button variant="default" onClick={handleChangeSubscription}>
+            Canviar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

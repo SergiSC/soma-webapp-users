@@ -23,11 +23,12 @@ import {
 } from "@/hooks/api/products";
 import { useUser } from "@/context/user-context";
 import { EmptyState } from "../empty-state";
-import { PackageIcon } from "lucide-react";
+import { AlertCircleIcon, PackageIcon } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Label } from "../ui/label";
 import { VariantProps } from "class-variance-authority";
 import { useCreateReservationMutation } from "@/hooks/api/reservations";
+import { Separator } from "../ui/separator";
 
 interface SessionReservationDialogProps {
   session: DailySession | null;
@@ -95,6 +96,8 @@ export function SessionReservationDialog({
               </Badge>
             </p>
           </div>
+          <Separator />
+          <SessionReservationRules session={session} />
           <SessionReservationDialogFooter
             session={session}
             setIsProductSelectorOpen={setIsProductSelectorOpen}
@@ -110,6 +113,45 @@ export function SessionReservationDialog({
         }}
       />
     </>
+  );
+}
+
+function SessionReservationRules({ session }: { session: DailySession }) {
+  const isEarlyMorningSession = session.startHour.startsWith("07:");
+
+  return (
+    <div className="space-y-2 px-4 py-2 bg-destructive/10 rounded-md">
+      <div className="flex items-center gap-2">
+        <AlertCircleIcon className="size-4" />{" "}
+        <span className="font-medium">Atenció</span>
+      </div>
+      <ul className="space-y-1 list-disc list-inside ">
+        {isEarlyMorningSession ? (
+          <>
+            <li className="text-sm text-muted-foreground">
+              Les cancel·lacions s’han de fer com a màxim el dia anterior abans
+              de les 23:59; en cas contrari, es consideraran com a no
+              assistides.
+            </li>
+            <li className="text-sm text-muted-foreground">
+              Les reserves s’han de realitzar com a màxim el dia anterior abans
+              de les 23:59.
+            </li>
+          </>
+        ) : (
+          <>
+            <li className="text-sm text-muted-foreground">
+              Les cancel·lacions s’han de fer amb un mínim d’1 hora d’antelació;
+              en cas contrari, es consideraran com a no assistides.
+            </li>
+            <li className="text-sm text-muted-foreground">
+              Les reserves s’han de realitzar com a mínim 30 minuts abans de
+              l’inici de la classe.
+            </li>
+          </>
+        )}
+      </ul>
+    </div>
   );
 }
 
