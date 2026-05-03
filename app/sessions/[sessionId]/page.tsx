@@ -394,12 +394,13 @@ function ReservationsList({ reservations }: ReservationsListProps) {
               </Badge>
               {reservation.status === ReservationStatus.CONFIRMED && (
                 <button
-                  onClick={() =>
+                  onClick={(e) => {
+                    e.stopPropagation();
                     cancelReservation({
                       userId: reservation.user.id,
                       reservationId: reservation.id,
-                    })
-                  }
+                    });
+                  }}
                   disabled={isPending}
                 >
                   {isPending ? (
