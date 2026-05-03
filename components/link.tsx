@@ -16,6 +16,7 @@ export function CustomLink({
   return (
     <Link
       href={to}
+      prefetch={false}
       {...props}
       className={cn(
         "text-primary hover:text-primary-dark cursor-pointer",

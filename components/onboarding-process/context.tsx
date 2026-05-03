@@ -1,17 +1,10 @@
 "use client";
 
 import { useUser } from "@/context/user-context";
-import { useUpdateUser } from "@/hooks/api/users";
+import { HowDidYouFindUs, useUpdateUser } from "@/hooks/api/users";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useState } from "react";
 import { toast } from "sonner";
-
-export enum HowDidYouFindUs {
-  FRIENDS = "friends",
-  SOCIAL_MEDIA = "socialMedia",
-  ADVERTISEMENT = "advertisement",
-  OTHER = "other",
-}
 
 export const OnboardingProcessContext =
   createContext<OnboardingProcessContextType | null>(null);
@@ -26,7 +19,7 @@ interface OnboardingProcessProviderProps {
 export function OnboardingProcessProvider({
   children,
 }: OnboardingProcessProviderProps) {
-  const { user, updateUser } = useUser();
+  const { user } = useUser();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [onboardingData, setOnboardingData] = useState<
@@ -35,7 +28,7 @@ export function OnboardingProcessProvider({
 
   const handleSetOnboardingData = (
     key: keyof OnboardingProcessContextType["onboardingData"],
-    value: string | Date | boolean
+    value: string | Date | boolean,
   ) => {
     setOnboardingData((prev) => ({
       ...prev,
@@ -55,26 +48,33 @@ export function OnboardingProcessProvider({
     }
   };
 
-  const { mutateAsync: submitOnboardingMutation, isPending } = useUpdateUser();
+  const { mutateAsync: submitOnboardingMutation, isPending } = useUpdateUser({
+    userId: user?.id,
+  });
 
   const submitOnboarding = async () => {
+    let birthDateString: string | undefined;
+    if (onboardingData.birthdayDate) {
+      // from the date, get the day, month and year
+      const day = onboardingData.birthdayDate.getDate();
+      const month = onboardingData.birthdayDate.getMonth() + 1;
+      const year = onboardingData.birthdayDate.getFullYear();
+      birthDateString = `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+    }
+
     try {
-      const updatedUser = await submitOnboardingMutation({
+      await submitOnboardingMutation({
         id: user!.id,
-        birthDate: onboardingData.birthdayDate?.toISOString(),
+        birthDate: birthDateString,
         postalCode: onboardingData.postalCode,
         name: onboardingData.firstName,
         surname: onboardingData.lastName,
         howDidYouFindUs: onboardingData.howDidYouFindUs,
         onboardingCompletedAt: new Date().toISOString(),
       });
-      // Update the user context with the response immediately
-      updateUser(updatedUser);
       toast.success("Onboarding completat correctament");
-      // Small delay to ensure toast displays before navigation
-      setTimeout(() => {
-        router.push("/");
-      }, 100);
+      router.push("/");
+      return;
     } catch (error: unknown) {
       console.error(error);
       toast.error("Error al completar la creació del teu compte", {
@@ -104,7 +104,7 @@ export function useOnboardingProcess() {
   const context = useContext(OnboardingProcessContext);
   if (!context) {
     throw new Error(
-      "useOnboardingProcess must be used within a OnboardingProcessProvider"
+      "useOnboardingProcess must be used within a OnboardingProcessProvider",
     );
   }
   return context;
@@ -122,7 +122,7 @@ export interface OnboardingProcessContextType {
   };
   handleSetOnboardingData: (
     key: keyof OnboardingProcessContextType["onboardingData"],
-    value: string | Date | boolean
+    value: string | Date | boolean,
   ) => void;
   currentStep: number;
   nextStep: () => void;

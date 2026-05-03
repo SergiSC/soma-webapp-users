@@ -1,20 +1,19 @@
 import { apiClient } from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { SubscriptionAggregate } from "@/lib/entities/subscription";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // API functions
 const subscriptionsApi = {
-  cancel: (subscriptionId: string) =>
-    apiClient.delete<void>(`/subscriptions/${subscriptionId}`),
-  deleteCanceled: (subscriptionId: string) =>
-    apiClient.delete<void>(
-      `/subscriptions/${subscriptionId}/already-cancelled`
+  cancel: (userId: string, subscriptionId: string) =>
+    apiClient.delete<void>(`/users/${userId}/subscriptions/${subscriptionId}`),
+  get: (userId: string, subscriptionId: string) =>
+    apiClient.get<SubscriptionAggregate>(
+      `/users/${userId}/subscriptions/${subscriptionId}`,
     ),
-  payOnDemand: (subscriptionId: string) =>
-    apiClient.post<void>(`/subscriptions/${subscriptionId}/pay-on-demand`),
-  change: (subscriptionId: string, productId: string) =>
+  change: (userId: string, subscriptionId: string, productId: string) =>
     apiClient.patch<void>(
-      `/subscriptions/${subscriptionId}/product/${productId}`
+      `/users/${userId}/subscriptions/${subscriptionId}/product/${productId}`,
     ),
 };
 
@@ -23,38 +22,22 @@ export function useCancelSubscription() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: subscriptionsApi.cancel,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-information"] });
+    mutationFn: ({
+      userId,
+      subscriptionId,
+    }: {
+      userId: string;
+      subscriptionId: string;
+    }) => subscriptionsApi.cancel(userId, subscriptionId),
+    onSuccess: (_, { userId, subscriptionId }) => {
+      queryClient.invalidateQueries({ queryKey: ["user", userId] });
+      queryClient.invalidateQueries({
+        queryKey: ["subscription", userId, subscriptionId],
+      });
       toast.success("Subscripció cancel·lada correctament");
     },
     onError: (error: Error) => {
       toast.error(`Error al cancel·lar la subscripció: ${error.message}`);
-    },
-  });
-}
-
-export function useDeleteCanceledSubscription() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: subscriptionsApi.deleteCanceled,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-information"] });
-      toast.success("Subscripció eliminada correctament");
-    },
-  });
-}
-
-// TODO: This is not implemented yet
-export function usePayOnDemandSubscription() {
-  return useMutation({
-    mutationFn: subscriptionsApi.payOnDemand,
-    onSuccess: () => {
-      toast.success("Subscripció renovada correctament");
-    },
-    onError: (error: Error) => {
-      toast.error(`Error al renovar la subscripció: ${error.message}`);
     },
   });
 }
@@ -64,18 +47,31 @@ export function useChangeSubscription() {
 
   return useMutation({
     mutationFn: ({
+      userId,
       subscriptionId,
       productId,
     }: {
+      userId: string;
       subscriptionId: string;
       productId: string;
-    }) => subscriptionsApi.change(subscriptionId, productId),
+    }) => subscriptionsApi.change(userId, subscriptionId, productId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-information"] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
       toast.success("Subscripció modificada correctament");
     },
     onError: (error: Error) => {
       toast.error(`Error al modificar la subscripció: ${error.message}`);
     },
+  });
+}
+
+export function useSubscriptionAggregate(
+  userId?: string,
+  subscriptionId?: string,
+) {
+  return useQuery({
+    queryKey: ["subscription", userId, subscriptionId],
+    queryFn: () => subscriptionsApi.get(userId!, subscriptionId!),
+    enabled: !!userId && !!subscriptionId,
   });
 }

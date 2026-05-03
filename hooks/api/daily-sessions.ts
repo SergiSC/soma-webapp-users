@@ -1,7 +1,6 @@
 import { apiClient } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { SessionTypeEnum, SessionStatus, SessionLevelEnum } from "./sessions";
-import { Reservation } from "./reservations";
 
 export interface DailySession {
   id: string;
@@ -25,7 +24,8 @@ export interface DailySession {
   publicationAt: string;
   createdAt: string;
   updatedAt: string | null;
-  reservations: Reservation[];
+  confirmedReservations: { count: number; userIds: string[] };
+  totalReservations: { count: number; userIds: string[] };
 }
 
 export interface DailySessionsFilters {
@@ -50,7 +50,9 @@ const dailySessionsApi = {
       params.append("teacherId", filters.teacherId);
     }
 
-    params.append("status", "published");
+    if (filters?.status) {
+      params.append("status", filters.status);
+    }
 
     return apiClient.get<DailySession[]>(
       `/sessions/daily?${params.toString()}`,

@@ -37,17 +37,24 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-navbar: var(--navbar);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-product-type-pack: var(--product-type-pack);
+  --color-product-type-subscription: var(--product-type-subscription);
+  --color-product-type-subscription-combo: var(
+    --product-type-subscription-combo
+  );
 }
 
 :root {
   --radius: 0.625rem;
   --background: #fcf9f0;
   --foreground: #333333;
-  --card: #c7c2b7;
+  --navbar: #b7b0a0;
+  --card: #fcf9f0;
   --card-foreground: #333333;
   --popover: #ffffff;
   --popover-foreground: #333333;
@@ -77,6 +84,9 @@
   --sidebar-accent-foreground: #333333;
   --sidebar-border: #c7c2b7;
   --sidebar-ring: #85786b;
+  --product-type-pack: #446224;
+  --product-type-subscription: #25285e;
+  --product-type-subscription-combo: #c08843;
 }
 
 .dark {
@@ -84,6 +94,7 @@
   --foreground: #f6f6f6;
   --card: #85786b;
   --card-foreground: #f6f6f6;
+  --navbar: #85786b;
   --popover: #85786b;
   --popover-foreground: #f6f6f6;
   --primary: #d2e6bc;
@@ -112,6 +123,9 @@
   --sidebar-accent-foreground: #f6f6f6;
   --sidebar-border: rgba(199, 194, 183, 0.2);
   --sidebar-ring: #85786b;
+  --product-type-pack: #446224;
+  --product-type-subscription: #25285e;
+  --product-type-subscription-combo: #c08843;
 }
 
 @layer base {

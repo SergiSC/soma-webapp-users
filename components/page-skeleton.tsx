@@ -4,6 +4,7 @@ import { DropdownMenuComponent } from "./dropdown-menu";
 import { EllipsisVerticalIcon } from "lucide-react";
 import { NavBar } from "./nav-bar";
 import { useIsMobile } from "@/hooks/use-is-mobile";
+import { cn } from "@/lib/utils";
 
 export interface PageSkeletonProps {
   title: string;
@@ -12,6 +13,7 @@ export interface PageSkeletonProps {
     title?: string;
     action?: React.ReactNode;
     content: React.ReactNode;
+    className?: string;
   }[];
   actions?:
     | {
@@ -59,9 +61,11 @@ export function PageSkeleton({
           {sections.map((section, index) => (
             <section
               key={`section-${index}`}
-              className={`h-min space-y-2 ${
-                index === sections.length - 1 ? "mb-4" : ""
-              }`}
+              className={cn(
+                "h-min space-y-2",
+                section.className,
+                index === sections.length - 1 && "mb-4",
+              )}
             >
               {(section.title || section.action) && (
                 <div className="flex items-center justify-between">

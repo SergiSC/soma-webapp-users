@@ -3,8 +3,13 @@
 import { LogInButton } from "@/components/logInButton";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
-import { useLoggedUser } from "@/hooks/api/users";
-import { User, apiClient } from "@/lib/api";
+import {
+  LoginResponse,
+  useGetUser,
+  useLogin,
+  UserObject,
+} from "@/hooks/api/users";
+import { apiClient } from "@/lib/api";
 import { useAuth0 } from "@auth0/auth0-react";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -14,9 +19,8 @@ import { OnboardingProcessProvider } from "@/components/onboarding-process/conte
 
 // Define the context type that includes the user data and token
 export interface UserContextType {
-  user: User | null;
+  user: UserObject | null;
   logout: () => void;
-  updateUser: (user: User) => void;
 }
 
 export const UserContext = createContext<UserContextType | null>(null);
@@ -28,20 +32,23 @@ interface UserProviderProps {
 }
 
 export function UserProvider({ children }: UserProviderProps) {
-  const { user: auth0User, isLoading, logout, isAuthenticated, getAccessTokenSilently } = useAuth0();
-  const [userData, setUserData] = useState<User | null>(null);
+  const {
+    user: auth0User,
+    isLoading,
+    logout,
+    isAuthenticated,
+    getAccessTokenSilently,
+  } = useAuth0();
+  const [loggedUser, setLoggedUser] = useState<LoginResponse | null>(null);
+  const { data: userData } = useGetUser({
+    userId: loggedUser?.id,
+  });
   const {
     mutate: loginUser,
     isError,
     isPending,
-    isSuccess,
-  } = useLoggedUser({
-    onSuccess: (data) => {
-      setUserData(data);
-    },
-    onError: () => {
-      toast.error("No s'ha pogut iniciar la sessió");
-    },
+  } = useLogin({
+    onSuccess: (data) => setLoggedUser(data),
   });
 
   useEffect(() => {
@@ -64,23 +71,13 @@ export function UserProvider({ children }: UserProviderProps) {
     }
   }, [auth0User, loginUser, getAccessTokenSilently]);
 
-  const FinalComponent = useMemo(() => {
-    return isSuccess && userData?.onboardingCompletedAt == null ? (
-      <OnboardingProcessProvider>
-        <OnboardingProcess />
-      </OnboardingProcessProvider>
-    ) : (
-      children
-    );
-  }, [isSuccess, children, userData]);
-
   const useMemoProjectSomaLogo = useMemo(() => {
     return (
       <div className="flex items-center justify-center">
         <h1
           className={cn(
             bebas.className,
-            "md:text-8xl text-6xl font-bold text-primary"
+            "md:text-8xl text-6xl font-bold text-primary",
           )}
         >
           PROJECT SOMA
@@ -129,10 +126,15 @@ export function UserProvider({ children }: UserProviderProps) {
               returnTo: window.location.origin,
             },
           }),
-        updateUser: setUserData,
       }}
     >
-      {FinalComponent}
+      {userData && userData.onboardingCompletedAt == null ? (
+        <OnboardingProcessProvider>
+          <OnboardingProcess />
+        </OnboardingProcessProvider>
+      ) : (
+        children
+      )}
     </UserContext.Provider>
   );
 }

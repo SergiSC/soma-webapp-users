@@ -1,4 +1,4 @@
-import { HowDidYouFindUs, useOnboardingProcess } from "../context";
+import { useOnboardingProcess } from "../context";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { HowDidYouFindUs } from "@/hooks/api/users";
 
 interface StepFourProps {
   nextStep: () => void;
@@ -28,7 +29,7 @@ export function StepFour({ nextStep, previousStep }: StepFourProps) {
         howDidYouFindUs: z.enum(Object.values(HowDidYouFindUs), {
           message: "La forma de trobar-nos és un camp obligatori",
         }),
-      })
+      }),
     ),
     defaultValues: {
       howDidYouFindUs:
@@ -46,7 +47,7 @@ export function StepFour({ nextStep, previousStep }: StepFourProps) {
     <Form {...formData}>
       <form
         onSubmit={formData.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-4 h-full"
       >
         <FormField
           control={formData.control}

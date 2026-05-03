@@ -1,8 +1,17 @@
 import { apiClient } from "@/lib/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ProductTypeEnum, RecurringIntervalEnum } from "./user-information";
+import { ReservationStatus } from "./reservations";
 
-export { ProductTypeEnum, RecurringIntervalEnum };
+export enum ProductTypeEnum {
+  PACK = "pack",
+  SUBSCRIPTION = "subscription",
+  SUBSCRIPTION_COMBO = "subscription-combo",
+}
+
+export enum RecurringIntervalEnum {
+  MONTH = "month",
+  YEAR = "year",
+}
 
 export interface ProductRecurring {
   type: ProductTypeEnum;
@@ -37,14 +46,38 @@ export interface ProductListResponse {
   totalPages: number;
 }
 
-const productsApi = {
-  list: (filters?: {
-    active?: boolean;
-    type?: ProductTypeEnum | ProductTypeEnum[];
-  }) => {
-    const params = new URLSearchParams();
+export interface ListUserActiveProductsResponse {
+  subscription: {
+    id: string;
+    currentWeekReservationsByStatus: Record<
+      ReservationStatus,
+      {
+        id: string;
+        status: ReservationStatus;
+      }[]
+    >;
+    product: Product;
+  } | null;
+  packs: {
+    id: string;
+    reservationsByStatus: Record<
+      ReservationStatus,
+      {
+        id: string;
+        status: ReservationStatus;
+      }[]
+    >;
+    product: Product;
+  }[];
+  accumulatedSessions: {
+    id: string;
+    product: Product;
+  } | null;
+}
 
-    params.append("active", "true");
+const productsApi = {
+  list: (filters?: { type?: ProductTypeEnum | ProductTypeEnum[] }) => {
+    const params = new URLSearchParams();
 
     if (filters?.type) {
       const types = Array.isArray(filters.type) ? filters.type : [filters.type];
@@ -53,16 +86,20 @@ const productsApi = {
 
     const queryString = params.toString();
     return apiClient.get<ProductListResponse>(
-      `/products${queryString ? `?${queryString}` : ""}`
+      `/products/active${queryString ? `?${queryString}` : ""}`,
     );
   },
   get: (productId: string) => apiClient.get<Product>(`/products/${productId}`),
   createCheckoutSession: (
     productId: string,
-    userId: string
+    userId: string,
   ): Promise<{ url: string }> =>
     apiClient.get<{ url: string }>(
-      `/products/${productId}/users/${userId}/checkout`
+      `/products/${productId}/users/${userId}/checkout`,
+    ),
+  listUserActiveProducts: (userId: string) =>
+    apiClient.get<ListUserActiveProductsResponse>(
+      `/users/${userId}/products/active`,
     ),
 };
 
@@ -93,5 +130,14 @@ export function useCreateProductCheckoutSession(productId: string) {
     onError: (error) => {
       console.error("Error creating checkout session:", error);
     },
+  });
+}
+
+export function useListUserActiveProducts(userId?: string) {
+  return useQuery({
+    queryKey: ["user-active-products", userId],
+    queryFn: () => productsApi.listUserActiveProducts(userId!),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
