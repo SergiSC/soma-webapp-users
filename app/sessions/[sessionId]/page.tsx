@@ -9,8 +9,10 @@ import {
   SessionStatus,
   SessionWithReservations,
 } from "@/hooks/api/sessions";
-import { ReservationStatus } from "@/hooks/api/reservations";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  ReservationStatus,
+  useCancelReservation,
+} from "@/hooks/api/reservations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +35,8 @@ import {
   sessionStatusToLabel,
   sessionTypeToLabel,
 } from "@/lib/constants";
+import { CreateFakeReservationButton } from "./create-fake-reservation-button";
+import { Loader2, TrashIcon } from "lucide-react";
 
 const sessionStatusToVariant: Record<
   SessionStatus,
@@ -245,6 +249,7 @@ export default function SessionPage() {
                 disabled={session.status !== SessionStatus.PUBLISHED}
                 onClick={handleOpenAttendanceDialog}
               />
+
               <Dialog
                 open={isAttendanceDialogOpen}
                 onOpenChange={setIsAttendanceDialogOpen}
@@ -302,6 +307,7 @@ export default function SessionPage() {
                       </p>
                     )}
                   </div>
+
                   <DialogFooter>
                     <Button
                       variant="outline"
@@ -319,7 +325,14 @@ export default function SessionPage() {
               </Dialog>
             </>
           ),
-          content: <ReservationsList reservations={session.reservations} />,
+          content: (
+            <>
+              <ReservationsList reservations={session.reservations} />
+              <div className="flex justify-end">
+                <CreateFakeReservationButton sessionId={sessionId} />
+              </div>
+            </>
+          ),
         },
       ]}
     />
@@ -341,15 +354,12 @@ function formatDateTime(dateString: string): string {
 }
 
 function ReservationsList({ reservations }: ReservationsListProps) {
+  const { mutateAsync: cancelReservation, isPending } = useCancelReservation();
   if (reservations.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">
-            No hi ha reserves per aquesta sessió
-          </p>
-        </CardContent>
-      </Card>
+      <p className="text-center text-muted-foreground py-4">
+        No hi ha reserves per aquesta sessió
+      </p>
     );
   }
 
@@ -378,9 +388,28 @@ function ReservationsList({ reservations }: ReservationsListProps) {
                 </span>
               </div>
             </div>
-            <Badge variant={reservationStatusToVariant[reservation.status]}>
-              {reservationStatusToLabel[reservation.status]}
-            </Badge>
+            <div className="flex flex-col gap-2 items-end">
+              <Badge variant={reservationStatusToVariant[reservation.status]}>
+                {reservationStatusToLabel[reservation.status]}
+              </Badge>
+              {reservation.status === ReservationStatus.CONFIRMED && (
+                <button
+                  onClick={() =>
+                    cancelReservation({
+                      userId: reservation.user.id,
+                      reservationId: reservation.id,
+                    })
+                  }
+                  disabled={isPending}
+                >
+                  {isPending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <TrashIcon className="size-4 rounded-full bg-destructive/50 p-0.5" />
+                  )}
+                </button>
+              )}
+            </div>
           </Link>
         );
       })}

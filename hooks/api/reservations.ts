@@ -245,3 +245,21 @@ export function useTakeAttendance() {
     },
   });
 }
+
+export function useCreateFakeReservation(sessionId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => {
+      return apiClient.post<void>(`/reservations/fake/${sessionId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["daily-sessions"] });
+      toast.success("Reserva fake creada correctament");
+    },
+    onError: (error: Error) => {
+      toast.error(`Error al crear la reserva fake: ${error.message}`);
+    },
+  });
+}
