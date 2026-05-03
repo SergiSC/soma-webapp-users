@@ -6,14 +6,17 @@ import { useUser } from "@/context/user-context";
 
 export function LogoutButton() {
   const { logout } = useUser();
+
   return (
-    <Button
-      variant="ghost"
-      onClick={logout}
-      className="w-full text-muted-foreground"
-    >
-      <LogOutIcon className="size-4" />
-      Sortir
-    </Button>
+    <div className="flex justify-center w-full">
+      <Button
+        variant="outline"
+        onClick={logout}
+        className="text-muted-foreground w-fit self-center"
+      >
+        <LogOutIcon className="size-4" />
+        Sortir
+      </Button>
+    </div>
   );
 }

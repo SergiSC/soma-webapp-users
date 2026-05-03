@@ -29,7 +29,7 @@ export function StepThree({ nextStep, previousStep }: StepThreeProps) {
           .trim()
           .min(1, "El codi postal no pot estar buit")
           .regex(/^[0-9]{5}$/, "El codi postal ha de tenir 5 dígits"),
-      })
+      }),
     ),
     defaultValues: {
       postalCode: onboardingData.postalCode || "",
@@ -46,7 +46,7 @@ export function StepThree({ nextStep, previousStep }: StepThreeProps) {
     <Form {...formData}>
       <form
         onSubmit={formData.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-4 h-full"
       >
         <FormField
           control={formData.control}

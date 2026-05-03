@@ -1,8 +1,7 @@
-import { apiClient } from "@/lib/api";
+import { apiClient, ApiError } from "@/lib/api";
 import {
   useInfiniteQuery,
   useMutation,
-  useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -78,52 +77,20 @@ export interface AggregatedReservationJsonObject {
   } | null;
 }
 
-export interface CreateReservationFromSubscriptionRequest extends Record<
-  string,
-  unknown
-> {
+export interface CreateReservationRequest extends Record<string, unknown> {
   sessionId: string;
   userId: string;
-  subscriptionId: string;
-}
-
-export interface CreateReservationFromPackRequest extends Record<
-  string,
-  unknown
-> {
-  sessionId: string;
-  userId: string;
-  packId: string;
-}
-
-export interface CreateReservationFromComboSubscriptionRequest extends Record<
-  string,
-  unknown
-> {
-  sessionId: string;
-  userId: string;
-  subscriptionId: string;
-}
-
-export interface CanMakeReservationResponse {
-  canMakeReservation: boolean;
-  isRoomAtFullCapacity: boolean;
-  reasonCannotMakeReservation?: string;
   product: {
     id: string;
     type: ProductTypeEnum;
+    accumulatedSessionId?: string;
   };
-  waitingListAmount?: number;
-}
-
-export interface CanMakeReservationRequest {
-  userId: string;
-  sessionId: string;
 }
 
 export enum ReservationListFilterEnum {
   PAST = "past",
   FUTURE = "future",
+  ACCUMULATED = "accumulated",
 }
 
 // API functions
@@ -141,6 +108,9 @@ const reservationsApi = {
       case ReservationListFilterEnum.FUTURE:
         url += "/future";
         break;
+      case ReservationListFilterEnum.ACCUMULATED:
+        url += "/accumulated";
+        break;
     }
     const queryParams = new URLSearchParams({
       page: paginationRequest.page.toString(),
@@ -155,46 +125,16 @@ const reservationsApi = {
       `/users/${userId}/reservations/current-week?subscriptionId=${subscriptionId}`,
     );
   },
-  cancel: (reservationId: string) =>
-    apiClient.delete<void>(`/reservations/${reservationId}`),
+  cancel: (userId: string, reservationId: string) =>
+    apiClient.delete<void>(`/users/${userId}/reservations/${reservationId}`),
 
-  canMakeReservation: (params: CanMakeReservationRequest) => {
-    const queryParams = new URLSearchParams({
-      userId: params.userId,
-      sessionId: params.sessionId,
-    });
-    return apiClient.get<CanMakeReservationResponse>(
-      `/reservations/can-make-reservation?${queryParams.toString()}`,
+  createReservation: (data: CreateReservationRequest) => {
+    return apiClient.post<Reservation>(
+      `/users/${data.userId}/reservations`,
+      data,
     );
   },
 };
-
-// React Query hooks
-export function useUserReservations(
-  userId: string | undefined,
-  filter: ReservationListFilterEnum,
-  paginationRequest: PaginatedRequest = {
-    page: 1,
-    perPage: 10,
-  },
-) {
-  return useQuery({
-    queryKey: ["user-reservations", userId, filter],
-    queryFn: () => reservationsApi.list(userId!, filter, paginationRequest),
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-export function useUserCurrentWeekReservations(
-  userId: string | undefined,
-  subscriptionId: string | undefined,
-) {
-  return useQuery({
-    queryKey: ["user-current-week-reservations", userId, subscriptionId],
-    queryFn: () => reservationsApi.listCurrentWeek(userId!, subscriptionId!),
-    enabled: !!userId && !!subscriptionId,
-  });
-}
 
 export function useInfiniteUserReservations(
   userId: string | undefined,
@@ -216,13 +156,45 @@ export function useInfiniteUserReservations(
   });
 }
 
+export function useCreateReservationMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: reservationsApi.createReservation,
+    onSuccess: (_, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: ["daily-sessions"] });
+      queryClient.invalidateQueries({
+        queryKey: ["user-reservations-infinite", userId],
+      });
+      toast.success("Reserva creada correctament");
+    },
+    onError: (error: Error) => {
+      if (error instanceof ApiError) {
+        toast.error(`Error al crear la reserva`, {
+          description: error.catalanMessage,
+        });
+      } else {
+        toast.error(`Error al crear la reserva: ${error.message}`);
+      }
+    },
+  });
+}
+
 export function useCancelReservation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: reservationsApi.cancel,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-information"] });
+    mutationFn: ({
+      userId,
+      reservationId,
+    }: {
+      userId: string;
+      reservationId: string;
+    }) => reservationsApi.cancel(userId, reservationId),
+    onSuccess: (_, { userId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["user-reservations-infinite", userId],
+      });
       queryClient.invalidateQueries({ queryKey: ["daily-sessions"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       toast.success("Reserva cancel·lada correctament");
@@ -256,7 +228,7 @@ export function useTakeAttendance() {
         notAttendedUserIds: data.notAttendedUserIds,
       };
       return apiClient.post<TakeAttendanceResponse>(
-        "/reservations/attendance",
+        `/sessions/${data.sessionId}/attendance`,
         body,
       );
     },
@@ -266,7 +238,10 @@ export function useTakeAttendance() {
       toast.success("Assistència registrada correctament");
     },
     onError: (error: Error) => {
-      toast.error(`Error al registrar l'assistència: ${error.message}`);
+      toast.error(`Error al registrar l'assistència: ${error.message}`, {
+        className:
+          "bg-destructive text-destructive-foreground border-destructive",
+      });
     },
   });
 }

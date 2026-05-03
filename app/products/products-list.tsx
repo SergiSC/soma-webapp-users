@@ -3,8 +3,13 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { ProductCard } from "@/components/cards/product-card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProductTypeEnum, useProducts } from "@/hooks/api/products";
+import {
+  ProductTypeEnum,
+  useListUserActiveProducts,
+  useProducts,
+} from "@/hooks/api/products";
 import { Loader2 } from "lucide-react";
+import { useUser } from "@/context/user-context";
 
 interface ProductsListProps {
   type: ProductTypeEnum;
@@ -13,6 +18,9 @@ interface ProductsListProps {
 export function ProductsList({ type }: ProductsListProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useUser();
+  const { data: userActiveProducts } = useListUserActiveProducts(user?.id);
+  const userActiveProductId = userActiveProducts?.subscription?.product.id;
   const { data: productsResponse, isLoading } = useProducts({ type });
   const products = Object.values(productsResponse?.items ?? {}).flat();
 
@@ -43,7 +51,15 @@ export function ProductsList({ type }: ProductsListProps) {
         </div>
       ) : (
         products?.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <ProductCard
+            key={product.id}
+            product={product}
+            userActiveProductId={
+              product.recurring.type !== ProductTypeEnum.PACK
+                ? userActiveProductId
+                : undefined
+            }
+          />
         ))
       )}
     </div>

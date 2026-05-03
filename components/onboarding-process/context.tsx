@@ -19,7 +19,7 @@ interface OnboardingProcessProviderProps {
 export function OnboardingProcessProvider({
   children,
 }: OnboardingProcessProviderProps) {
-  const { user, updateUser } = useUser();
+  const { user } = useUser();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [onboardingData, setOnboardingData] = useState<
@@ -53,23 +53,28 @@ export function OnboardingProcessProvider({
   });
 
   const submitOnboarding = async () => {
+    let birthDateString: string | undefined;
+    if (onboardingData.birthdayDate) {
+      // from the date, get the day, month and year
+      const day = onboardingData.birthdayDate.getDate();
+      const month = onboardingData.birthdayDate.getMonth() + 1;
+      const year = onboardingData.birthdayDate.getFullYear();
+      birthDateString = `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+    }
+
     try {
-      const updatedUser = await submitOnboardingMutation({
+      await submitOnboardingMutation({
         id: user!.id,
-        birthDate: onboardingData.birthdayDate?.toISOString(),
+        birthDate: birthDateString,
         postalCode: onboardingData.postalCode,
         name: onboardingData.firstName,
         surname: onboardingData.lastName,
         howDidYouFindUs: onboardingData.howDidYouFindUs,
         onboardingCompletedAt: new Date().toISOString(),
       });
-      // Update the user context with the response immediately
-      updateUser(updatedUser);
       toast.success("Onboarding completat correctament");
-      // Small delay to ensure toast displays before navigation
-      setTimeout(() => {
-        router.push("/");
-      }, 100);
+      router.push("/");
+      return;
     } catch (error: unknown) {
       console.error(error);
       toast.error("Error al completar la creació del teu compte", {

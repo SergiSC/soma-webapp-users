@@ -145,7 +145,16 @@ export function ReservationsList({ filter }: ReservationsListProps) {
     setOpenCancelReservationDialog(true);
     setReservationToCancel(reservation);
   };
-  const { mutate: cancelReservation } = useCancelReservation();
+  const { mutateAsync: cancelReservation } = useCancelReservation();
+
+  const onCancelReservation = async (reservationId: string) => {
+    if (!user?.id) {
+      return;
+    }
+    await cancelReservation({ userId: user.id, reservationId });
+    setOpenCancelReservationDialog(false);
+    setReservationToCancel(undefined);
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -161,6 +170,9 @@ export function ReservationsList({ filter }: ReservationsListProps) {
           <TabsTrigger value={ReservationListFilterEnum.PAST}>
             Passades
           </TabsTrigger>
+          <TabsTrigger value={ReservationListFilterEnum.ACCUMULATED}>
+            Acumulades
+          </TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -171,13 +183,17 @@ export function ReservationsList({ filter }: ReservationsListProps) {
       ) : reservations.length === 0 ? (
         <EmptyState
           icon={<CalendarIcon className="size-10 text-muted-foreground" />}
-          message={`No tens cap reserva ${filter === ReservationListFilterEnum.FUTURE ? "pròximament" : "completada"}`}
-          button={{
-            text: "Reservar classe",
-            onClick: () => {
-              router.push("/sessions");
-            },
-          }}
+          message={`No tens cap reserva ${textMap[filter]}`}
+          button={
+            filter === ReservationListFilterEnum.FUTURE
+              ? {
+                  text: "Reservar classe",
+                  onClick: () => {
+                    router.push("/sessions");
+                  },
+                }
+              : undefined
+          }
         />
       ) : filter === ReservationListFilterEnum.PAST ? (
         <div className="flex flex-col gap-4">
@@ -227,8 +243,14 @@ export function ReservationsList({ filter }: ReservationsListProps) {
         open={openCancelReservationDialog}
         onOpenChange={setOpenCancelReservationDialog}
         reservation={reservationToCancel}
-        onCancel={cancelReservation}
+        onCancel={onCancelReservation}
       />
     </div>
   );
 }
+
+const textMap: Record<ReservationListFilterEnum, string> = {
+  [ReservationListFilterEnum.FUTURE]: "pròximament",
+  [ReservationListFilterEnum.PAST]: "completada",
+  [ReservationListFilterEnum.ACCUMULATED]: "acumulada",
+};

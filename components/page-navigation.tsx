@@ -36,7 +36,7 @@ function PageNavigationItem({
     <CustomLink
       to={to}
       className={cn(
-        "flex items-center gap-2 min-h-10 cursor-pointer justify-center text-lg font-bold text-primary-foreground bg-primary rounded-lg p-2",
+        "flex items-center gap-2 min-h-10 cursor-pointer justify-center text-lg font-bold text-primary bg-navbar rounded-lg p-2",
         className,
       )}
     >

@@ -32,7 +32,7 @@ export function StepOne({ nextStep }: StepOneProps) {
           .string("Els cognoms són un camp obligatori")
           .trim()
           .min(1, "Els cognoms no poden estar buits"),
-      })
+      }),
     ),
     defaultValues: {
       firstName: onboardingData.firstName || "",
@@ -51,7 +51,7 @@ export function StepOne({ nextStep }: StepOneProps) {
     <Form {...formData}>
       <form
         onSubmit={formData.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-4 h-full"
       >
         <FormField
           control={formData.control}

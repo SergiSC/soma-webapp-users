@@ -23,6 +23,13 @@ const badgeVariants = cva(
         levelNormal: "border-transparent bg-[#e5e5e5] text-[#666666]",
         levelAdvanced: "border-transparent bg-[#333333] text-white",
 
+        // Product selector item variants
+        productSelectorSubscription:
+          "border-transparent bg-blue-500 text-white",
+        productSelectorPack: "border-transparent bg-green-500 text-white",
+        productSelectorAccumulatedSession:
+          "border-transparent bg-yellow-500 text-white",
+
         // Reservation status variants
         reservationConfirmed:
           "border-transparent bg-secondary text-secondary-foreground",

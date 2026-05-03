@@ -38,7 +38,7 @@ export function StepFive({ previousStep }: StepFiveProps) {
         acceptPrivacyPolicy: z.boolean().refine((val) => val === true, {
           message: "Has d'acceptar la política de privacitat",
         }),
-      })
+      }),
     ),
     defaultValues: {
       acceptTermsAndConditions:
@@ -53,7 +53,7 @@ export function StepFive({ previousStep }: StepFiveProps) {
   }) => {
     handleSetOnboardingData(
       "acceptTermsAndConditions",
-      data.acceptTermsAndConditions
+      data.acceptTermsAndConditions,
     );
     handleSetOnboardingData("acceptPrivacyPolicy", data.acceptPrivacyPolicy);
     submitOnboarding();
@@ -63,7 +63,7 @@ export function StepFive({ previousStep }: StepFiveProps) {
     <Form {...formData}>
       <form
         onSubmit={formData.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-4 h-full"
       >
         <FormField
           control={formData.control}

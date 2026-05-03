@@ -8,7 +8,6 @@ import {
   useGetUser,
   useLogin,
   UserObject,
-  useUpdateUser,
 } from "@/hooks/api/users";
 import { apiClient } from "@/lib/api";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -22,7 +21,6 @@ import { OnboardingProcessProvider } from "@/components/onboarding-process/conte
 export interface UserContextType {
   user: UserObject | null;
   logout: () => void;
-  updateUser: (user: Partial<UserObject>) => void;
 }
 
 export const UserContext = createContext<UserContextType | null>(null);
@@ -42,13 +40,13 @@ export function UserProvider({ children }: UserProviderProps) {
     getAccessTokenSilently,
   } = useAuth0();
   const [loggedUser, setLoggedUser] = useState<LoginResponse | null>(null);
-  const { data: userData } = useGetUser({ userId: loggedUser?.id });
-  const { mutate: updateUser } = useUpdateUser({ userId: loggedUser?.id });
+  const { data: userData } = useGetUser({
+    userId: loggedUser?.id,
+  });
   const {
     mutate: loginUser,
     isError,
     isPending,
-    isSuccess,
   } = useLogin({
     onSuccess: (data) => setLoggedUser(data),
   });
@@ -72,16 +70,6 @@ export function UserProvider({ children }: UserProviderProps) {
       getTokenAndLogin();
     }
   }, [auth0User, loginUser, getAccessTokenSilently]);
-
-  const FinalComponent = useMemo(() => {
-    return isSuccess && userData?.onboardingCompletedAt == null ? (
-      <OnboardingProcessProvider>
-        <OnboardingProcess />
-      </OnboardingProcessProvider>
-    ) : (
-      children
-    );
-  }, [isSuccess, children, userData]);
 
   const useMemoProjectSomaLogo = useMemo(() => {
     return (
@@ -138,10 +126,15 @@ export function UserProvider({ children }: UserProviderProps) {
               returnTo: window.location.origin,
             },
           }),
-        updateUser: updateUser,
       }}
     >
-      {FinalComponent}
+      {userData && userData.onboardingCompletedAt == null ? (
+        <OnboardingProcessProvider>
+          <OnboardingProcess />
+        </OnboardingProcessProvider>
+      ) : (
+        children
+      )}
     </UserContext.Provider>
   );
 }

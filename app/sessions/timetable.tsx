@@ -85,7 +85,7 @@ export function Timetable() {
   // Admins/teachers can see from the 1st of the current month; others start from today.
   const daysRange = useMemo(() => {
     const startDate = isAdminOrTeacher
-      ? new Date(today.getFullYear(), today.getMonth(), 1, 12, 0, 0)
+      ? new Date(today.getFullYear(), today.getMonth() - 2, 1, 12, 0, 0)
       : new Date(
           today.getFullYear(),
           today.getMonth(),
@@ -175,7 +175,7 @@ export function Timetable() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="sticky top-0 z-10 bg-background">
+      <div className="sticky -top-px z-10 bg-background">
         {/* Scrollable Days List */}
         <div
           ref={scrollContainerRef}

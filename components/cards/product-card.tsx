@@ -11,17 +11,22 @@ import { Button } from "@/components/ui/button";
 import { Product, ProductTypeEnum } from "@/hooks/api/products";
 import { useUser } from "@/context/user-context";
 import { apiClient } from "@/lib/api";
-import { Fragment, useState } from "react";
+import { useMemo, useState } from "react";
 import { Spinner } from "../ui/spinner";
 import { cn } from "@/lib/utils";
 import { PurchaseOrRejectproductDialog } from "@/app/products/confirm-purchase";
 import { toast } from "sonner";
 import { Badge } from "../ui/badge";
+import { useChangeSubscription } from "@/hooks/api/subscriptions";
 interface ProductCardProps {
   product: Product;
+  userActiveProductId?: string;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({
+  product,
+  userActiveProductId,
+}: ProductCardProps) {
   const [url, setUrl] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -102,6 +107,7 @@ export function ProductCard({ product }: ProductCardProps) {
           product={product}
           setUrl={setUrl}
           setIsDialogOpen={setIsDialogOpen}
+          userActiveProductId={userActiveProductId}
         />
       </Card>
       {url && (
@@ -151,49 +157,59 @@ interface ProductCardFooterProps {
   product: Product;
   setUrl: (url: string) => void;
   setIsDialogOpen: (isDialogOpen: boolean) => void;
+  userActiveProductId?: string;
 }
 
 function ProductCardFooter({
   product,
   setUrl,
   setIsDialogOpen,
+  userActiveProductId,
 }: ProductCardFooterProps) {
+  const { hasActive, isActive } = useMemo(() => {
+    return {
+      hasActive: userActiveProductId !== undefined,
+      isActive: userActiveProductId === product.id,
+    };
+  }, [userActiveProductId, product.id]);
   const { user } = useUser();
+  const { mutateAsync: changeSubscription } = useChangeSubscription();
   const [isLoading, setIsLoading] = useState(false);
+
   const handlePurchase = async () => {
     if (!user?.id) return;
 
-    try {
-      setIsLoading(true);
-      const response = await apiClient.get<{ url: string }>(
-        `/products/${product.id}/users/${user.id}/checkout`,
-      );
+    setIsLoading(true);
 
-      if (response.url) {
-        setUrl(response.url);
-        setIsDialogOpen(true);
-        setIsLoading(false);
+    if (hasActive) {
+      try {
+        if (!user?.subscriptionId) return;
+        await changeSubscription({
+          userId: user.id,
+          subscriptionId: user.subscriptionId,
+          productId: product.id,
+        });
+      } catch {
+        toast.error("Error al canviar la subscripció");
       }
-    } catch {
-      toast.warning("Ja tens una subscripció activa", {
-        description: `No pots comprar aquesta subscripció mentre tinguis una activa. Si
-              vols modificar la teva subscripció, pots fer-ho a la pantalla
-              'Inici', fent click en els tres punts a la dreta de la
-              teva subscripció.
-            `,
-        duration: 7000,
-        closeButton: true,
-        action: {
-          label: "D'acord",
-          onClick: () => {
-            toast.dismiss();
-          },
-        },
-      });
-    } finally {
-      setIsLoading(false);
+    } else {
+      try {
+        const response = await apiClient.get<{ url: string }>(
+          `/products/${product.id}/users/${user.id}/checkout`,
+        );
+
+        if (response.url) {
+          setUrl(response.url);
+          setIsDialogOpen(true);
+          setIsLoading(false);
+        }
+      } catch {
+        toast.error("Error al comprar el producte");
+      }
     }
+    setIsLoading(false);
   };
+
   return (
     <CardFooter className="flex items-end justify-between gap-4">
       <div>
@@ -206,13 +222,23 @@ function ProductCardFooter({
       </div>
       <Button
         onClick={handlePurchase}
-        disabled={isLoading || !user?.id}
+        disabled={isLoading || !user?.id || isActive}
         className={cn(
           "rounded-xl px-6 font-bold tracking-wide uppercase text-sm shrink-0",
           "bg-primary text-primary-foreground hover:bg-primary/90",
         )}
       >
-        {isLoading ? <Spinner className="size-4" /> : "Comprar"}
+        {isLoading ? (
+          <Spinner className="size-4" />
+        ) : hasActive ? (
+          isActive ? (
+            "Actual"
+          ) : (
+            "Canviar"
+          )
+        ) : (
+          "Comprar"
+        )}
       </Button>
     </CardFooter>
   );

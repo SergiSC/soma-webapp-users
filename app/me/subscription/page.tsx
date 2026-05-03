@@ -1,5 +1,5 @@
 import { PageSkeleton } from "@/components/page-skeleton";
-import { SubscriptionCard } from "@/components/cards/subscription/subscription.card";
+import { SubscriptionCard } from "@/components/cards/subscription.card";
 
 export default function UserSubscriptionPage() {
   return (

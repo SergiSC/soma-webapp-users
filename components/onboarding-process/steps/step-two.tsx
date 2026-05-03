@@ -20,7 +20,7 @@ interface StepTwoProps {
 export function StepTwo({ nextStep, previousStep }: StepTwoProps) {
   const { handleSetOnboardingData } = useOnboardingProcess();
   const min16YearsAgo = new Date(
-    new Date().setFullYear(new Date().getFullYear() - 16)
+    new Date().setFullYear(new Date().getFullYear() - 16),
   );
   const formData = useForm<{
     birthdayDate: Date;
@@ -30,7 +30,7 @@ export function StepTwo({ nextStep, previousStep }: StepTwoProps) {
         birthdayDate: z
           .date("La data de naixement és un camp obligatori")
           .max(min16YearsAgo, "Has de tenir almenys 16 anys"),
-      })
+      }),
     ),
   });
 
@@ -44,7 +44,7 @@ export function StepTwo({ nextStep, previousStep }: StepTwoProps) {
     <Form {...formData}>
       <form
         onSubmit={formData.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-4 h-full"
       >
         <FormField
           control={formData.control}

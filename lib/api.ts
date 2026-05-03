@@ -2,42 +2,9 @@
 const SOMA_API_BASE_URL =
   process.env.NEXT_PUBLIC_SOMA_API_URL || "http://localhost:3001";
 
-// Custom error classes for better error handling
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public statusText: string,
-    public endpoint: string,
-    public originalError?: Error,
-  ) {
-    super(message);
-    this.name = "ApiError";
-  }
-}
-
-export class NetworkError extends Error {
-  constructor(
-    message: string,
-    public originalError?: Error,
-  ) {
-    super(message);
-    this.name = "NetworkError";
-  }
-}
-
-export class TimeoutError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "TimeoutError";
-  }
-}
-
 // Request configuration interface
 interface RequestConfig extends RequestInit {
   timeout?: number;
-  retries?: number;
-  retryDelay?: number;
 }
 
 // Response interceptor type
@@ -55,8 +22,6 @@ type RequestInterceptor = (
 class ApiClient {
   private baseURL: string;
   private defaultTimeout: number;
-  private defaultRetries: number;
-  private defaultRetryDelay: number;
   private requestInterceptors: RequestInterceptor[] = [];
   private responseInterceptors: ResponseInterceptor[] = [];
   private authToken: string | null = null;
@@ -65,14 +30,10 @@ class ApiClient {
     baseURL: string,
     options: {
       timeout?: number;
-      retries?: number;
-      retryDelay?: number;
     } = {},
   ) {
     this.baseURL = baseURL;
     this.defaultTimeout = options.timeout || 10000; // 10 seconds
-    this.defaultRetries = options.retries || 3;
-    this.defaultRetryDelay = options.retryDelay || 1000; // 1 second
   }
 
   // Add request interceptor
@@ -131,22 +92,11 @@ class ApiClient {
     });
   }
 
-  // Sleep utility for retry delays
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  // Enhanced request method with timeout, retries, and better error handling
   private async request<T>(
     endpoint: string,
     options: RequestConfig = {},
   ): Promise<T> {
-    const {
-      timeout = this.defaultTimeout,
-      retries = this.defaultRetries,
-      retryDelay = this.defaultRetryDelay,
-      ...requestOptions
-    } = options;
+    const { timeout = this.defaultTimeout, ...requestOptions } = options;
 
     const url = `${this.baseURL}${endpoint}`;
 
@@ -171,102 +121,43 @@ class ApiClient {
     // Apply request interceptors
     config = await this.applyRequestInterceptors(config);
 
-    let lastError: Error;
+    try {
+      const response = await Promise.race([
+        fetch(url, config),
+        this.createTimeoutPromise(timeout),
+      ]);
 
-    // Retry logic
-    for (let attempt = 0; attempt <= retries; attempt++) {
-      try {
-        // Create timeout promise
-        const timeoutPromise = this.createTimeoutPromise(timeout);
-
-        // Make the request with timeout
-        const response = await Promise.race([
-          fetch(url, config),
-          timeoutPromise,
-        ]);
-
-        // Handle response
-        if (!response.ok) {
-          let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-          let errorData: Record<string, unknown> = {};
-
-          try {
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-              errorData = await response.json();
-              errorMessage =
-                (errorData as { message?: string; error?: string }).message ||
-                (errorData as { message?: string; error?: string }).error ||
-                errorMessage;
-            }
-          } catch {
-            // If we can't parse error response, use default message
-          }
-
-          throw new ApiError(
-            errorMessage,
-            response.status,
-            response.statusText,
-            endpoint,
-          );
-        }
-
-        // Parse response based on content type
+      if (!response.ok) {
+        let errorData: Record<string, unknown> = {};
         const contentType = response.headers.get("content-type");
-        let data: T;
-
         if (contentType && contentType.includes("application/json")) {
-          const text = await response.text();
-          if (text.trim() === "") {
-            // Handle empty JSON responses
-            data = {} as T;
-          } else {
-            data = JSON.parse(text);
-          }
-        } else {
-          // Handle non-JSON responses (text, blob, etc.)
-          data = (await response.text()) as unknown as T;
+          errorData = await response.json();
         }
-
-        // Apply response interceptors
-        data = await this.applyResponseInterceptors(response, data);
-
-        return data;
-      } catch (error) {
-        lastError = error as Error;
-
-        console.log("error", error);
-        // Don't retry on certain errors
-        if (
-          error instanceof ApiError &&
-          error.status >= 400 &&
-          error.status < 500
-        ) {
-          // Client errors (4xx) shouldn't be retried
-          throw error;
-        }
-
-        // Don't retry on timeout errors
-        if (error instanceof TimeoutError) {
-          throw error;
-        }
-
-        // If this was the last attempt, throw the error
-        if (attempt === retries) {
-          if (error instanceof TypeError && error.message.includes("fetch")) {
-            throw new NetworkError(`Network error: ${error.message}`, error);
-          }
-          throw lastError;
-        }
-
-        // Wait before retrying
-        if (attempt < retries) {
-          await this.sleep(retryDelay * Math.pow(2, attempt)); // Exponential backoff
-        }
+        throw ApiError.fromJson(response.status, errorData);
       }
-    }
 
-    throw lastError!;
+      // Parse response based on content type
+      const contentType = response.headers.get("content-type");
+      let data: T;
+
+      if (contentType && contentType.includes("application/json")) {
+        const text = await response.text();
+        if (text.trim() === "") {
+          data = {} as T;
+        } else {
+          data = JSON.parse(text);
+        }
+      } else {
+        data = (await response.text()) as unknown as T;
+      }
+
+      return await this.applyResponseInterceptors(response, data);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        throw new NetworkError(`Network error: ${error.message}`, error);
+      }
+      throw error;
+    }
   }
 
   async get<T>(endpoint: string, options?: RequestConfig): Promise<T> {
@@ -305,8 +196,6 @@ class ApiClient {
 // Create API client instance with custom configuration
 export const apiClient = new ApiClient(SOMA_API_BASE_URL, {
   timeout: 15000, // 15 seconds
-  retries: 3,
-  retryDelay: 1000,
 });
 
 // Add logging interceptor for development
@@ -327,4 +216,116 @@ if (process.env.NODE_ENV === "development") {
     });
     return data;
   });
+}
+
+// Custom error classes for better error handling
+export class ApiError extends Error {
+  code: ApiErrorCode;
+  statusCode: number;
+  details: Record<string, unknown>;
+  catalanMessage: string;
+  constructor(
+    message: string,
+    code: ApiErrorCode,
+    statusCode: number,
+    details: Record<string, unknown>,
+  ) {
+    super(message);
+    this.code = code;
+    this.statusCode = statusCode;
+    this.details = details;
+    this.catalanMessage = statusCodeMap[code];
+  }
+
+  static fromJson(statusCode: number, json: Record<string, unknown>): ApiError {
+    //ensure code is a valid ApiErrorCode without assertion (as enum)
+    if (!Object.values(ApiErrorCode).includes(json.code as ApiErrorCode)) {
+      throw new Error(`Invalid API error code: ${json.code}`);
+    }
+    const code = json.code as ApiErrorCode;
+    const message = json.message as string;
+    const details = json.details as Record<string, unknown>;
+    return new ApiError(message, code, statusCode, details);
+  }
+}
+
+enum ApiErrorCode {
+  INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR",
+  BAD_REQUEST = "BAD_REQUEST",
+  UNAUTHORIZED = "UNAUTHORIZED",
+  FORBIDDEN = "FORBIDDEN",
+  NOT_FOUND = "NOT_FOUND",
+  METHOD_NOT_ALLOWED = "METHOD_NOT_ALLOWED",
+  CONFLICT = "CONFLICT",
+  PRECONDITION_FAILED = "PRECONDITION_FAILED",
+  PAYLOAD_TOO_LARGE = "PAYLOAD_TOO_LARGE",
+  UNPROCESSABLE_ENTITY = "UNPROCESSABLE_ENTITY",
+
+  // Reservations
+  ACCUMULATED_SESSION_NOT_FOUND = "ACCUMULATED_SESSION_NOT_FOUND",
+  ACCUMULATED_SESSION_NOT_PENDING = "ACCUMULATED_SESSION_NOT_PENDING",
+  ACCUMULATED_SESSION_EXPIRED = "ACCUMULATED_SESSION_EXPIRED",
+  SESSION_CANCELLED = "SESSION_CANCELLED",
+  SESSION_COMPLETED = "SESSION_COMPLETED",
+  ROOM_FULL = "ROOM_FULL",
+  INVALID_PRODUCT_TYPE = "INVALID_PRODUCT_TYPE",
+  PACK_NOT_FOUND = "PACK_NOT_FOUND",
+  PRODUCT_NOT_FOUND = "PRODUCT_NOT_FOUND",
+  SUBSCRIPTION_NOT_FOUND = "SUBSCRIPTION_NOT_FOUND",
+  COMBO_NOT_FOUND = "COMBO_NOT_FOUND",
+  SUBSCRIPTION_NOT_ACTIVE = "SUBSCRIPTION_NOT_ACTIVE",
+  SESSION_SEVEN_HOUR_BEFORE_START = "SESSION_SEVEN_HOUR_BEFORE_START",
+  SESSION_THIRTY_MINUTES_BEFORE_START = "SESSION_THIRTY_MINUTES_BEFORE_START",
+  RESERVATION_ALREADY_EXISTS_FOR_DATE = "RESERVATION_ALREADY_EXISTS_FOR_DATE",
+  PACK_ALREADY_AT_MAX_RESERVATIONS = "PACK_ALREADY_AT_MAX_RESERVATIONS",
+}
+
+const statusCodeMap: Record<ApiErrorCode, string> = {
+  [ApiErrorCode.INTERNAL_SERVER_ERROR]: "Error intern del servidor",
+  [ApiErrorCode.BAD_REQUEST]: "Petició incorrecta",
+  [ApiErrorCode.UNAUTHORIZED]: "No autorizat",
+  [ApiErrorCode.FORBIDDEN]: "Prohibit",
+  [ApiErrorCode.NOT_FOUND]: "No trobat",
+  [ApiErrorCode.METHOD_NOT_ALLOWED]: "Mètode no permès",
+  [ApiErrorCode.CONFLICT]: "Conflicte",
+  [ApiErrorCode.PRECONDITION_FAILED]: "Precondició fallida",
+  [ApiErrorCode.PAYLOAD_TOO_LARGE]: "Carrega útil massa gran",
+  [ApiErrorCode.UNPROCESSABLE_ENTITY]: "Entitat no processable",
+  [ApiErrorCode.ACCUMULATED_SESSION_NOT_FOUND]: "Sessió acumulada no trobada",
+  [ApiErrorCode.ACCUMULATED_SESSION_NOT_PENDING]: "Sessió acumulada no pendent",
+  [ApiErrorCode.ACCUMULATED_SESSION_EXPIRED]: "Sessió acumulada expirada",
+  [ApiErrorCode.SESSION_CANCELLED]: "Sessió cancel·lada",
+  [ApiErrorCode.SESSION_COMPLETED]: "Sessió completada",
+  [ApiErrorCode.ROOM_FULL]: "Sala plena",
+  [ApiErrorCode.INVALID_PRODUCT_TYPE]: "Tipus de producte invàlid",
+  [ApiErrorCode.PACK_NOT_FOUND]: "Pack no trobat",
+  [ApiErrorCode.PRODUCT_NOT_FOUND]: "Producte no trobat",
+  [ApiErrorCode.SUBSCRIPTION_NOT_FOUND]: "Subscripció no trobada",
+  [ApiErrorCode.COMBO_NOT_FOUND]: "Subscripció combo no trobat",
+  [ApiErrorCode.SUBSCRIPTION_NOT_ACTIVE]: "Subscripció no activa",
+  [ApiErrorCode.SESSION_SEVEN_HOUR_BEFORE_START]:
+    "Les sessions de primera hora s'han de reservar el dia anterior",
+  [ApiErrorCode.SESSION_THIRTY_MINUTES_BEFORE_START]:
+    "La reserva ha de ser feta com a mínim 30 minuts abans de l'inici de la classe",
+  [ApiErrorCode.RESERVATION_ALREADY_EXISTS_FOR_DATE]:
+    "Ja existeix una reserva per aquesta dia",
+  [ApiErrorCode.PACK_ALREADY_AT_MAX_RESERVATIONS]:
+    "Ja has gastat totes les teves classes disponibles",
+};
+
+export class NetworkError extends Error {
+  constructor(
+    message: string,
+    public originalError?: Error,
+  ) {
+    super(message);
+    this.name = "NetworkError";
+  }
+}
+
+export class TimeoutError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TimeoutError";
+  }
 }

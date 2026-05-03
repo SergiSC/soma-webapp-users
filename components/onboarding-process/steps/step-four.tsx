@@ -47,7 +47,7 @@ export function StepFour({ nextStep, previousStep }: StepFourProps) {
     <Form {...formData}>
       <form
         onSubmit={formData.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-4 h-full"
       >
         <FormField
           control={formData.control}

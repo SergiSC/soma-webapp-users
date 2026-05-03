@@ -1,9 +1,5 @@
 import { DailySession } from "@/hooks/api/daily-sessions";
-import {
-  SessionTypeEnum,
-  SessionLevelEnum,
-  SessionStatus,
-} from "@/hooks/api/sessions";
+import { SessionLevelEnum, SessionStatus } from "@/hooks/api/sessions";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -13,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "../ui/badge";
+import { Badge, badgeVariants } from "../ui/badge";
 import {
   sessionColorsRecord,
   sessionTypeToLabel,
@@ -21,35 +17,23 @@ import {
 } from "@/lib/constants";
 import { Button } from "../ui/button";
 import { useMemo, useState } from "react";
-import { ProductTypeEnum } from "@/hooks/api/products";
-import { useListUserActiveProducts } from "@/hooks/api/products";
+import {
+  ProductTypeEnum,
+  useListUserActiveProducts,
+} from "@/hooks/api/products";
 import { useUser } from "@/context/user-context";
 import { EmptyState } from "../empty-state";
 import { PackageIcon } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Label } from "../ui/label";
+import { VariantProps } from "class-variance-authority";
+import { useCreateReservationMutation } from "@/hooks/api/reservations";
 
 interface SessionReservationDialogProps {
   session: DailySession | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const sessionTypeDescriptions: Record<SessionTypeEnum, string> = {
-  [SessionTypeEnum.PILATES_REFORMER]:
-    "El Pilates Reformer és una modalitat de Pilates que utilitza una màquina especialitzada anomenada reformer. Aquesta classe combina exercicis de força, flexibilitat i control corporal per millorar la postura, la força del core i la coordinació. Ideal per a tots els nivells.",
-  [SessionTypeEnum.PILATES_REFORMER_PRE_NATAL]:
-    "El Pilates Reformer Pre Natal és una modalitat de Pilates que utilitza una màquina especialitzada anomenada reformer. Aquesta classe combina exercicis de força, flexibilitat i control corporal per millorar la postura, la força del core i la coordinació. Ideal per a totes les mares en diferents fases de la seva gestació.",
-  [SessionTypeEnum.PILATES_MAT]:
-    "El Pilates Mat és una forma clàssica de Pilates que es practica sobre una estora. Aquesta classe se centra en la força del core, la flexibilitat i el control corporal utilitzant només el pes corporal. Perfecte per millorar la postura i la força funcional.",
-  [SessionTypeEnum.BARRE]:
-    "El Barre combina elements de ballet, Pilates i entrenament de força. Aquesta classe utilitza una barra i moviments de baix impacte per treballar la força, la flexibilitat i la resistència. Ideal per esculpir i tonificar el cos sencer.",
-  [SessionTypeEnum.FIT_MIX]:
-    "El Fit Mix és una classe d'entrenament funcional que combina diferents modalitats d'exercici per millorar la força, la resistència cardiovascular i la coordinació. Inclou exercicis amb pes corporal i equipament variat per mantenir-te actiu i en forma.",
-  [SessionTypeEnum.PILATES_MAT_PLUS_65]:
-    "Pilates Mat adaptat especialment per a persones majors de 65 anys. Aquesta classe se centra en la mobilitat, l'equilibri i la força funcional amb moviments suaus i adaptats. Perfecte per mantenir-se actiu i millorar la qualitat de vida.",
-  [SessionTypeEnum.FIT_MIX_PLUS_65]:
-    "Fit Mix adaptat per a persones majors de 65 anys. Aquesta classe combina exercicis funcionals suaus per millorar la força, l'equilibri i la mobilitat. Tots els exercicis estan adaptats per ser segurs i efectius per a aquest grup d'edat.",
-};
 
 export function SessionReservationDialog({
   session,
@@ -111,27 +95,6 @@ export function SessionReservationDialog({
               </Badge>
             </p>
           </div>
-          <div className="flex flex-col gap-4  border-t border-border/50 pt-4">
-            {/* Session Type Description */}
-            <div>
-              <h4 className="font-semibold text-sm mb-2">
-                Sobre el {sessionTypeToLabel[session.type]}
-              </h4>
-              <DialogDescription className="text-sm text-muted-foreground">
-                {sessionTypeDescriptions[session.type]}
-              </DialogDescription>
-            </div>
-
-            {/* Observations */}
-            {session.observations && (
-              <div className="pt-4 border-t border-border/50">
-                <h4 className="font-semibold text-sm mb-2">Observacions</h4>
-                <p className="text-sm text-muted-foreground italic">
-                  {session.observations}
-                </p>
-              </div>
-            )}
-          </div>
           <SessionReservationDialogFooter
             session={session}
             setIsProductSelectorOpen={setIsProductSelectorOpen}
@@ -142,6 +105,9 @@ export function SessionReservationDialog({
         open={isProductSelectorOpen}
         onOpenChange={setIsProductSelectorOpen}
         session={session}
+        onReservationCreated={() => {
+          onOpenChange(false);
+        }}
       />
     </>
   );
@@ -184,8 +150,7 @@ function SessionReservationDialogFooter({
   setIsProductSelectorOpen: (open: boolean) => void;
 }) {
   const canReserve = session.status === SessionStatus.PUBLISHED;
-  const isFull =
-    session.confirmedReservations.count === session.room?.capacity;
+  const isFull = session.confirmedReservations.count === session.room?.capacity;
 
   return (
     <DialogFooter className="flex flex-col gap-4  border-t border-border/50 pt-4">
@@ -213,6 +178,7 @@ function SessionReservationDialogFooter({
 interface ProductSelectorDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onReservationCreated: () => void;
   session: DailySession;
 }
 
@@ -220,6 +186,7 @@ function ProductSelectorDialog({
   open,
   onOpenChange,
   session,
+  onReservationCreated,
 }: ProductSelectorDialogProps) {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
     null,
@@ -227,6 +194,7 @@ function ProductSelectorDialog({
 
   const { user } = useUser();
   const { data: userActiveProducts } = useListUserActiveProducts(user?.id);
+  const createReservationMutation = useCreateReservationMutation();
 
   const items: ProductSelectorItem[] = useMemo(
     () => [
@@ -235,7 +203,8 @@ function ProductSelectorDialog({
             {
               id: userActiveProducts.subscription.id,
               name: userActiveProducts.subscription.product.name,
-              type: ProductTypeEnum.SUBSCRIPTION,
+              type: userActiveProducts.subscription.product.recurring.type,
+              isAccumulatedSession: false,
             },
           ]
         : []),
@@ -243,18 +212,46 @@ function ProductSelectorDialog({
         id: pack.id,
         name: pack.product.name,
         type: ProductTypeEnum.PACK,
+        isAccumulatedSession: false,
       })),
+      ...(userActiveProducts?.accumulatedSessions
+        ? [
+            {
+              id: userActiveProducts.accumulatedSessions.id,
+              name: userActiveProducts.accumulatedSessions.product.name,
+              type: userActiveProducts.accumulatedSessions.product.recurring
+                .type,
+              isAccumulatedSession: true,
+            },
+          ]
+        : []),
     ],
     [userActiveProducts],
   );
+
   const displaEmptyState = items.length === 0;
 
-  const handleCreateReservation = () => {
-    if (!selectedProductId) {
+  const handleCreateReservation = async () => {
+    if (!selectedProductId || !user?.id) {
       return;
     }
-    console.log(selectedProductId);
-    // TODO: Create reservation
+    const selectedItem = items.find((item) => item.id === selectedProductId);
+    if (!selectedItem) {
+      return;
+    }
+
+    await createReservationMutation.mutateAsync({
+      sessionId: session.id,
+      userId: user.id,
+      product: {
+        id: selectedProductId,
+        type: selectedItem.type,
+        accumulatedSessionId: selectedItem.isAccumulatedSession
+          ? selectedItem.id
+          : undefined,
+      },
+    });
+    onReservationCreated();
   };
 
   return (
@@ -277,19 +274,29 @@ function ProductSelectorDialog({
             onValueChange={setSelectedProductId}
           >
             {items.map((item) => (
-              <RadioGroupItem
-                key={item.id}
-                value={item.id}
-                id={item.id}
-                className="cursor-pointer"
-              >
-                {item.name}
-              </RadioGroupItem>
+              <div key={item.id} className="flex items-center gap-3">
+                <RadioGroupItem
+                  value={item.id}
+                  id={item.id}
+                  className="cursor-pointer"
+                />
+                <Label htmlFor={item.id} className="cursor-pointer">
+                  <Badge variant={VARIANT_MAP[item.type]}>
+                    {LABELS_MAP[item.type]}
+                  </Badge>
+                  {item.name}
+                </Label>
+              </div>
             ))}
           </RadioGroup>
         )}
         <DialogFooter>
-          <Button onClick={handleCreateReservation}>Reservar</Button>
+          <Button
+            onClick={handleCreateReservation}
+            disabled={createReservationMutation.isPending || !selectedProductId}
+          >
+            {createReservationMutation.isPending ? "Reservant..." : "Reservar"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -300,4 +307,20 @@ interface ProductSelectorItem {
   id: string;
   name: string;
   type: ProductTypeEnum;
+  isAccumulatedSession: boolean;
 }
+
+const LABELS_MAP: Record<ProductTypeEnum, string> = {
+  [ProductTypeEnum.SUBSCRIPTION]: "Sub",
+  [ProductTypeEnum.SUBSCRIPTION_COMBO]: "Combo",
+  [ProductTypeEnum.PACK]: "Pack",
+};
+
+const VARIANT_MAP: Record<
+  ProductTypeEnum,
+  VariantProps<typeof badgeVariants>["variant"]
+> = {
+  [ProductTypeEnum.SUBSCRIPTION]: "productSelectorSubscription",
+  [ProductTypeEnum.SUBSCRIPTION_COMBO]: "productSelectorSubscription",
+  [ProductTypeEnum.PACK]: "productSelectorPack",
+};

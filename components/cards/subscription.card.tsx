@@ -24,7 +24,7 @@ import { PackageIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CancelSubscriptionDialog } from "@/components/dialogs/cancel-subscription.dialog";
 import { useState } from "react";
-import { ChangeSubscriptionDialog } from "../../dialogs/change-subscription.dialog";
+import { ChangeSubscriptionDialog } from "../dialogs/change-subscription.dialog";
 
 interface SubscriptionCardProps {
   subscription: SubscriptionAggregate;

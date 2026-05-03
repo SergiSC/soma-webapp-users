@@ -69,6 +69,10 @@ export interface ListUserActiveProductsResponse {
     >;
     product: Product;
   }[];
+  accumulatedSessions: {
+    id: string;
+    product: Product;
+  } | null;
 }
 
 const productsApi = {
