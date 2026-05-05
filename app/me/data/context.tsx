@@ -37,7 +37,7 @@ export function UserInformationContextProvider({
       value={{
         user: userInformation,
         subscriptionId: userInformation?.subscriptionId,
-        packIds: userInformation?.packIds
+        packIds: userInformation?.packIds,
       }}
     >
       {children}

@@ -1,5 +1,9 @@
 import { DailySession } from "@/hooks/api/daily-sessions";
-import { SessionLevelEnum, SessionStatus } from "@/hooks/api/sessions";
+import {
+  SESSION_TYPES_THAT_INCLUDE_REFORMER,
+  SessionLevelEnum,
+  SessionStatus,
+} from "@/hooks/api/sessions";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -238,38 +242,45 @@ function ProductSelectorDialog({
   const { data: userActiveProducts } = useListUserActiveProducts(user?.id);
   const createReservationMutation = useCreateReservationMutation();
 
-  const items: ProductSelectorItem[] = useMemo(
-    () => [
-      ...(userActiveProducts?.subscription
-        ? [
-            {
-              id: userActiveProducts.subscription.id,
-              name: userActiveProducts.subscription.product.name,
-              type: userActiveProducts.subscription.product.recurring.type,
-              isAccumulatedSession: false,
-            },
-          ]
-        : []),
-      ...(userActiveProducts?.packs ?? []).map((pack) => ({
-        id: pack.id,
-        name: pack.product.name,
-        type: ProductTypeEnum.PACK,
-        isAccumulatedSession: false,
-      })),
-      ...(userActiveProducts?.accumulatedSessions
-        ? [
-            {
-              id: userActiveProducts.accumulatedSessions.id,
-              name: userActiveProducts.accumulatedSessions.product.name,
-              type: userActiveProducts.accumulatedSessions.product.recurring
-                .type,
-              isAccumulatedSession: true,
-            },
-          ]
-        : []),
-    ],
-    [userActiveProducts],
-  );
+  const items: ProductSelectorItem[] = useMemo(() => {
+    const items: ProductSelectorItem[] = [];
+    if (SESSION_TYPES_THAT_INCLUDE_REFORMER.includes(session.type)) {
+      if (
+        userActiveProducts?.subscription &&
+        (userActiveProducts.subscription.product.recurring.includesReformer ||
+          userActiveProducts.subscription.product.recurring
+            .amountReformerPerWeek !== undefined)
+      ) {
+        items.push({
+          id: userActiveProducts.subscription.id,
+          name: userActiveProducts.subscription.product.name,
+          type: userActiveProducts.subscription.product.recurring.type,
+          isAccumulatedSession: false,
+        });
+      }
+    }
+
+    const filteredPacks = userActiveProducts?.packs.filter((pack) => {
+      if (SESSION_TYPES_THAT_INCLUDE_REFORMER.includes(session.type)) {
+        return pack.product.recurring.includesReformer;
+      } else {
+        return pack.product.recurring.includesReformer === false;
+      }
+    });
+    if (filteredPacks && filteredPacks.length > 0) {
+      items.push(
+        ...filteredPacks.map((pack) => ({
+          id: pack.id,
+          name: pack.product.name,
+          type: ProductTypeEnum.PACK,
+          isAccumulatedSession: false,
+        })),
+      );
+
+      return items;
+    }
+    return items;
+  }, [userActiveProducts, session.type]);
 
   const displaEmptyState = items.length === 0;
 

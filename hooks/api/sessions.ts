@@ -1,7 +1,7 @@
 import { apiClient } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Reservation, ReservationStatus } from "./reservations";
+import { ReservationStatus } from "./reservations";
 
 export enum SessionTypeEnum {
   PILATES_REFORMER = "reformer",
@@ -12,6 +12,11 @@ export enum SessionTypeEnum {
   PILATES_MAT_PLUS_65 = "pilates_mat_plus_65",
   FIT_MIX_PLUS_65 = "fit_mix_plus_65",
 }
+
+export const SESSION_TYPES_THAT_INCLUDE_REFORMER = [
+  SessionTypeEnum.PILATES_REFORMER,
+  SessionTypeEnum.PILATES_REFORMER_PRE_NATAL,
+];
 
 export enum SessionStatus {
   DRAFT = "draft",

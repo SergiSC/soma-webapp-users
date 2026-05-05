@@ -36,6 +36,7 @@ export function Timetable() {
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
     null,
   );
+  const hasInitialScrolledRef = useRef(false);
 
   const isAdminOrTeacher =
     user?.type === UserType.ADMIN || user?.type === UserType.TEACHER;
@@ -152,11 +153,14 @@ export function Timetable() {
     if (!scrollContainerRef.current) return;
 
     const container = scrollContainerRef.current;
-    const selectedButton = container.querySelector(
-      `[data-date="${formatDateLocal(selectedDate)}"]`,
-    ) as HTMLElement;
 
-    if (selectedButton) {
+    const scrollToSelected = (behavior: ScrollBehavior) => {
+      const selectedButton = container.querySelector(
+        `[data-date="${formatDateLocal(selectedDate)}"]`,
+      ) as HTMLElement | null;
+
+      if (!selectedButton) return false;
+
       const containerRect = container.getBoundingClientRect();
       const buttonRect = selectedButton.getBoundingClientRect();
       const scrollLeft =
@@ -166,12 +170,22 @@ export function Timetable() {
         containerRect.width / 2 +
         buttonRect.width / 2;
 
-      container.scrollTo({
-        left: scrollLeft,
-        behavior: "smooth",
+      container.scrollTo({ left: scrollLeft, behavior });
+      return true;
+    };
+
+    if (!hasInitialScrolledRef.current) {
+      // Defer to next frame so the horizontal list has been laid out.
+      const raf = requestAnimationFrame(() => {
+        if (scrollToSelected("auto")) {
+          hasInitialScrolledRef.current = true;
+        }
       });
+      return () => cancelAnimationFrame(raf);
     }
-  }, [selectedDate]);
+
+    scrollToSelected("smooth");
+  }, [selectedDate, daysByMonth]);
 
   return (
     <div className="flex flex-col gap-4">

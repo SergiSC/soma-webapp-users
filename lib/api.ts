@@ -297,7 +297,8 @@ const statusCodeMap: Record<ApiErrorCode, string> = {
   [ApiErrorCode.SESSION_CANCELLED]: "Sessió cancel·lada",
   [ApiErrorCode.SESSION_COMPLETED]: "Sessió completada",
   [ApiErrorCode.ROOM_FULL]: "Sala plena",
-  [ApiErrorCode.INVALID_PRODUCT_TYPE]: "Tipus de producte invàlid",
+  [ApiErrorCode.INVALID_PRODUCT_TYPE]:
+    "Aquest producte no és vàlid per aquest tipus de classe",
   [ApiErrorCode.PACK_NOT_FOUND]: "Pack no trobat",
   [ApiErrorCode.PRODUCT_NOT_FOUND]: "Producte no trobat",
   [ApiErrorCode.SUBSCRIPTION_NOT_FOUND]: "Subscripció no trobada",

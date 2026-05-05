@@ -24,19 +24,5 @@ export const queryClient = new QueryClient({
       // Refetch on reconnect
       refetchOnReconnect: true,
     },
-    mutations: {
-      // Retry failed mutations
-      retry: (failureCount, error: unknown) => {
-        // Don't retry on 4xx errors (client errors)
-        if (error && typeof error === "object" && "status" in error) {
-          const status = (error as { status: number }).status;
-          if (status >= 400 && status < 500) {
-            return false;
-          }
-        }
-        // Retry up to 2 times for other errors
-        return failureCount < 2;
-      },
-    },
   },
 });

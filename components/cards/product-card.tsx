@@ -8,9 +8,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Product, ProductTypeEnum } from "@/hooks/api/products";
+import {
+  Product,
+  ProductTypeEnum,
+  useCreateProductCheckoutSession,
+} from "@/hooks/api/products";
 import { useUser } from "@/context/user-context";
-import { apiClient } from "@/lib/api";
 import { useMemo, useState } from "react";
 import { Spinner } from "../ui/spinner";
 import { cn } from "@/lib/utils";
@@ -185,6 +188,8 @@ function ProductCardFooter({
   userActiveProductId,
   setIsChangeSubscriptionDialogOpen,
 }: ProductCardFooterProps) {
+  const { mutateAsync: createCheckoutSessionMutation } =
+    useCreateProductCheckoutSession(product.id);
   const { hasActive, isActive } = useMemo(() => {
     return {
       hasActive: userActiveProductId !== undefined,
@@ -207,19 +212,9 @@ function ProductCardFooter({
         toast.error("Error al canviar la subscripció");
       }
     } else {
-      try {
-        const response = await apiClient.get<{ url: string }>(
-          `/products/${product.id}/users/${user.id}/checkout`,
-        );
-
-        if (response.url) {
-          setUrl(response.url);
-          setIsDialogOpen(true);
-          setIsLoading(false);
-        }
-      } catch {
-        toast.error("Error al comprar el producte");
-      }
+      const response = await createCheckoutSessionMutation(user.id);
+      setUrl(response.url);
+      setIsDialogOpen(true);
     }
     setIsLoading(false);
   };

@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ReservationStatus } from "./reservations";
+import { PackObject } from "./packs";
 
 export enum ProductTypeEnum {
   PACK = "pack",
@@ -58,21 +59,11 @@ export interface ListUserActiveProductsResponse {
     >;
     product: Product;
   } | null;
-  packs: {
-    id: string;
-    reservationsByStatus: Record<
-      ReservationStatus,
-      {
-        id: string;
-        status: ReservationStatus;
-      }[]
-    >;
-    product: Product;
-  }[];
-  accumulatedSessions: {
-    id: string;
-    product: Product;
-  } | null;
+  packs: PackObject[];
+  // accumulatedSessions: {
+  //   id: string;
+  //   product: Product;
+  // } | null;
 }
 
 const productsApi = {
