@@ -244,20 +244,14 @@ function ProductSelectorDialog({
 
   const items: ProductSelectorItem[] = useMemo(() => {
     const items: ProductSelectorItem[] = [];
-    if (SESSION_TYPES_THAT_INCLUDE_REFORMER.includes(session.type)) {
-      if (
-        userActiveProducts?.subscription &&
-        (userActiveProducts.subscription.product.recurring.includesReformer ||
-          userActiveProducts.subscription.product.recurring
-            .amountReformerPerWeek !== undefined)
-      ) {
-        items.push({
-          id: userActiveProducts.subscription.id,
-          name: userActiveProducts.subscription.product.name,
-          type: userActiveProducts.subscription.product.recurring.type,
-          isAccumulatedSession: false,
-        });
-      }
+
+    if (userActiveProducts?.subscription) {
+      items.push({
+        id: userActiveProducts?.subscription?.id,
+        name: userActiveProducts?.subscription?.product?.name,
+        type: userActiveProducts?.subscription?.product?.recurring?.type,
+        isAccumulatedSession: false,
+      });
     }
 
     const filteredPacks = userActiveProducts?.packs.filter((pack) => {
