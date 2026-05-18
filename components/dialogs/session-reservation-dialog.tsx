@@ -276,34 +276,30 @@ function ProductSelectorDialog({
           name: pack.product.name,
         })),
       );
-
-      const filteredAccumulatedSessions =
-        userActiveProducts?.accumulatedSessions.filter((accumulatedSession) => {
-          if (SESSION_TYPES_THAT_INCLUDE_REFORMER.includes(session.type)) {
-            return accumulatedSession.isReformer;
-          } else {
-            return accumulatedSession.isReformer === false;
-          }
-        });
-      if (
-        filteredAccumulatedSessions &&
-        filteredAccumulatedSessions.length > 0
-      ) {
-        items.push(
-          ...filteredAccumulatedSessions.map((accumulatedSession) => ({
-            reactKey: `accumulated-session-${accumulatedSession.id}:${accumulatedSession.product.id}`,
-            product: {
-              id: accumulatedSession.subscriptionId,
-              type: accumulatedSession.product.recurring.type,
-            },
-            accumulatedSessionId: accumulatedSession.id,
-            name: `${accumulatedSession.product.name} (Acumulada)`,
-          })),
-        );
-      }
-
-      return items;
     }
+
+    const filteredAccumulatedSessions =
+      userActiveProducts?.accumulatedSessions.filter((accumulatedSession) => {
+        if (SESSION_TYPES_THAT_INCLUDE_REFORMER.includes(session.type)) {
+          return accumulatedSession.isReformer;
+        } else {
+          return accumulatedSession.isReformer === false;
+        }
+      });
+    if (filteredAccumulatedSessions && filteredAccumulatedSessions.length > 0) {
+      items.push(
+        ...filteredAccumulatedSessions.map((accumulatedSession) => ({
+          reactKey: `accumulated-session-${accumulatedSession.id}:${accumulatedSession.product.id}`,
+          product: {
+            id: accumulatedSession.subscriptionId,
+            type: accumulatedSession.product.recurring.type,
+          },
+          accumulatedSessionId: accumulatedSession.id,
+          name: `${accumulatedSession.product.name} (Acumulada)`,
+        })),
+      );
+    }
+
     return items;
   }, [userActiveProducts, session.type]);
 
