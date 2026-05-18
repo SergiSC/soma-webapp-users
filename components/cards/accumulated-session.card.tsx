@@ -45,7 +45,7 @@ function AccumulatedSessionCardContent({
   accumulatedSession,
 }: AccumulatedSessionCardProps) {
   const labels: Record<string, string> = {
-    "Reformer:": accumulatedSession.includesReformer ? "Sí" : "No",
+    "Reformer:": accumulatedSession.includesReformer ? "Si" : "No",
     "Creada:": formatDate(new Date(accumulatedSession.createdAt)),
     "Caduca:": formatDate(new Date(accumulatedSession.expiresAt)),
   };
