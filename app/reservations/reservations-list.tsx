@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import {
@@ -19,6 +19,7 @@ import { Separator } from "@/components/ui/separator";
 
 interface ReservationsListProps {
   filter: ReservationListFilterEnum;
+  setFilter: (filter: ReservationListFilterEnum) => void;
 }
 
 interface ReservationGroup {
@@ -100,10 +101,9 @@ function groupReservations(
   });
 }
 
-export function ReservationsList({ filter }: ReservationsListProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+export function ReservationsList({ filter, setFilter }: ReservationsListProps) {
   const { user } = useUser();
+  const router = useRouter();
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
     useInfiniteUserReservations(user?.id, filter);
 
@@ -128,9 +128,7 @@ export function ReservationsList({ filter }: ReservationsListProps) {
   const groups = groupReservations(reservations);
 
   function handleTabChange(value: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("filter", value);
-    router.push(`?${params.toString()}`);
+    setFilter(value as ReservationListFilterEnum);
   }
 
   const [openCancelReservationDialog, setOpenCancelReservationDialog] =

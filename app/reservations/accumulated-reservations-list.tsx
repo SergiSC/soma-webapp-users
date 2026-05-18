@@ -15,6 +15,7 @@ import { AccumulatedSessionCard } from "@/components/cards/accumulated-session.c
 
 interface AccumulatedReservationsListProps {
   filter: ReservationListFilterEnum;
+  setFilter: (filter: ReservationListFilterEnum) => void;
 }
 
 export function AccumulatedReservationsList({
