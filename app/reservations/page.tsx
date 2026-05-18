@@ -15,7 +15,7 @@ export default function ProductsPage() {
     (filter: ReservationListFilterEnum) => {
       const params = new URLSearchParams(searchParams.toString());
       params.set("filter", filter);
-      router.push(`?${params.toString()}`);
+      router.replace(`?${params.toString()}`);
     },
     [searchParams, router],
   );
