@@ -25,10 +25,13 @@ const badgeVariants = cva(
 
         // Product selector item variants
         productSelectorSubscription:
-          "border-transparent bg-blue-500 text-white",
-        productSelectorPack: "border-transparent bg-green-500 text-white",
+          "border-transparent bg-product-type-subscription text-white",
+        productSelectorSubscriptionCombo:
+          "border-transparent bg-product-type-subscription-combo text-white",
+        productSelectorPack:
+          "border-transparent bg-product-type-pack text-white",
         productSelectorAccumulatedSession:
-          "border-transparent bg-yellow-500 text-white",
+          "border-transparent bg-destructive text-white",
 
         // Reservation status variants
         reservationConfirmed:
@@ -38,6 +41,15 @@ const badgeVariants = cva(
         reservationCancelled: "border-transparent bg-destructive text-white",
         reservationAttended: "border-transparent bg-blue-500 text-white",
         reservationNoShow: "border-transparent bg-red-900 text-white",
+
+        // Accumulated session status variants
+        accumulatedSessionPending:
+          "border-transparent bg-primary text-primary-foreground",
+        accumulatedSessionInUse: "border-transparent bg-blue-500 text-white",
+        accumulatedSessionCompleted:
+          "border-transparent bg-secondary text-secondary-foreground",
+        accumulatedSessionExpired:
+          "border-transparent bg-destructive text-white",
       },
     },
     defaultVariants: {

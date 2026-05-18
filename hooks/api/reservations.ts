@@ -77,6 +77,24 @@ export interface AggregatedReservationJsonObject {
   } | null;
 }
 
+export enum AccumulatedSessionStatus {
+  PENDING = "pending",
+  IN_USE = "in_use",
+  COMPLETED = "completed",
+  EXPIRED = "expired",
+}
+
+export interface AccumulatedSessionJsonObject {
+  id: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  expiresAt: string;
+  status: AccumulatedSessionStatus;
+  subscriptionId: string;
+  includesReformer: boolean;
+}
+
 export interface CreateReservationRequest extends Record<string, unknown> {
   sessionId: string;
   userId: string;
@@ -102,21 +120,47 @@ const reservationsApi = {
   ) => {
     let url = `/users/${userId}/reservations`;
     switch (filter) {
-      case ReservationListFilterEnum.PAST:
+      case ReservationListFilterEnum.PAST: {
         url += "/past";
-        break;
-      case ReservationListFilterEnum.FUTURE:
+        const queryParams = new URLSearchParams({
+          page: paginationRequest.page.toString(),
+          perPage: paginationRequest.perPage.toString(),
+        });
+        return apiClient.get<PaginatedResult<AggregatedReservationJsonObject>>(
+          `${url}?${queryParams.toString()}`,
+        );
+      }
+      case ReservationListFilterEnum.FUTURE: {
         url += "/future";
-        break;
+        const queryParams = new URLSearchParams({
+          page: paginationRequest.page.toString(),
+          perPage: paginationRequest.perPage.toString(),
+        });
+        return apiClient.get<PaginatedResult<AggregatedReservationJsonObject>>(
+          `${url}?${queryParams.toString()}`,
+        );
+      }
       case ReservationListFilterEnum.ACCUMULATED:
-        url += "/accumulated";
-        break;
+        return {
+          items: [],
+          hasNextPage: false,
+          nextPage: 1,
+          total: 0,
+          page: paginationRequest.page,
+          perPage: paginationRequest.perPage,
+          totalPages: 0,
+          hasPreviousPage: false,
+          previousPage: null,
+        };
     }
+  },
+  listAccumulated: (userId: string, paginationRequest: PaginatedRequest) => {
+    const url = `/users/${userId}/reservations/accumulated`;
     const queryParams = new URLSearchParams({
       page: paginationRequest.page.toString(),
       perPage: paginationRequest.perPage.toString(),
     });
-    return apiClient.get<PaginatedResult<AggregatedReservationJsonObject>>(
+    return apiClient.get<PaginatedResult<AccumulatedSessionJsonObject>>(
       `${url}?${queryParams.toString()}`,
     );
   },
@@ -145,6 +189,25 @@ export function useInfiniteUserReservations(
     queryKey: ["user-reservations-infinite", userId, filter],
     queryFn: ({ pageParam }) =>
       reservationsApi.list(userId!, filter, {
+        page: pageParam as number,
+        perPage,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNextPage ? lastPage.nextPage : undefined,
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useInfiniteUserAccumulatedSessions(
+  userId: string | undefined,
+  perPage: number = 10,
+) {
+  return useInfiniteQuery({
+    queryKey: ["user-accumulated-sessions-infinite", userId],
+    queryFn: ({ pageParam }) =>
+      reservationsApi.listAccumulated(userId!, {
         page: pageParam as number,
         perPage,
       }),

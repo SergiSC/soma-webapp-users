@@ -60,10 +60,17 @@ export interface ListUserActiveProductsResponse {
     product: Product;
   } | null;
   packs: PackObject[];
-  // accumulatedSessions: {
-  //   id: string;
-  //   product: Product;
-  // } | null;
+  accumulatedSessions: {
+    id: string;
+    product: {
+      id: string;
+      name: string;
+      stringifiedPrice: string;
+      recurring: ProductRecurring;
+    };
+    isReformer: boolean;
+    expiresAt: string;
+  }[];
 }
 
 const productsApi = {

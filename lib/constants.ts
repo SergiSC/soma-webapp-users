@@ -3,7 +3,10 @@ import {
   SessionStatus,
   SessionTypeEnum,
 } from "@/hooks/api/sessions";
-import { ReservationStatus } from "@/hooks/api/reservations";
+import {
+  AccumulatedSessionStatus,
+  ReservationStatus,
+} from "@/hooks/api/reservations";
 
 export const sessionColorsRecord: Record<SessionTypeEnum, string> = {
   [SessionTypeEnum.PILATES_REFORMER]: "#4285f4",
@@ -104,4 +107,27 @@ export const reservationStatusToVariant: Record<
   [ReservationStatus.CANCELLED]: "reservationCancelled",
   [ReservationStatus.ATTENDED]: "reservationAttended",
   [ReservationStatus.NO_SHOW]: "reservationNoShow",
+};
+
+export const accumulatedSessionStatusToLabel: Record<
+  AccumulatedSessionStatus,
+  string
+> = {
+  [AccumulatedSessionStatus.PENDING]: "Pendent",
+  [AccumulatedSessionStatus.IN_USE]: "En ús",
+  [AccumulatedSessionStatus.COMPLETED]: "Completada",
+  [AccumulatedSessionStatus.EXPIRED]: "Caducada",
+};
+
+export const accumulatedSessionStatusToVariant: Record<
+  AccumulatedSessionStatus,
+  | "accumulatedSessionPending"
+  | "accumulatedSessionInUse"
+  | "accumulatedSessionCompleted"
+  | "accumulatedSessionExpired"
+> = {
+  [AccumulatedSessionStatus.PENDING]: "accumulatedSessionPending",
+  [AccumulatedSessionStatus.IN_USE]: "accumulatedSessionInUse",
+  [AccumulatedSessionStatus.COMPLETED]: "accumulatedSessionCompleted",
+  [AccumulatedSessionStatus.EXPIRED]: "accumulatedSessionExpired",
 };

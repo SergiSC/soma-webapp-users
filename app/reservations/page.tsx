@@ -5,12 +5,13 @@ import { useSearchParams } from "next/navigation";
 import { PageSkeleton } from "@/components/page-skeleton";
 import { ReservationsList } from "./reservations-list";
 import { ReservationListFilterEnum } from "@/hooks/api/reservations";
+import { AccumulatedReservationsList } from "./accumulated-reservations-list";
 
 export default function ProductsPage() {
   const searchParams = useSearchParams();
 
   // Get type from URL query params
-  const filter = useMemo(() => {
+  const component = useMemo(() => {
     const filterParam = searchParams.get("filter");
     if (
       filterParam &&
@@ -18,9 +19,21 @@ export default function ProductsPage() {
         filterParam as ReservationListFilterEnum,
       )
     ) {
-      return filterParam as ReservationListFilterEnum;
+      if (filterParam === ReservationListFilterEnum.ACCUMULATED) {
+        return (
+          <AccumulatedReservationsList
+            filter={filterParam as ReservationListFilterEnum}
+          />
+        );
+      } else {
+        return (
+          <ReservationsList filter={filterParam as ReservationListFilterEnum} />
+        );
+      }
     }
-    return ReservationListFilterEnum.FUTURE;
+    return (
+      <AccumulatedReservationsList filter={ReservationListFilterEnum.FUTURE} />
+    );
   }, [searchParams]);
 
   return (
@@ -28,7 +41,7 @@ export default function ProductsPage() {
       title="Reserves"
       sections={[
         {
-          content: <ReservationsList filter={filter} />,
+          content: component,
         },
       ]}
     />

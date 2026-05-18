@@ -247,10 +247,13 @@ function ProductSelectorDialog({
 
     if (userActiveProducts?.subscription) {
       items.push({
-        id: userActiveProducts?.subscription?.id,
+        reactKey: `subscription-${userActiveProducts?.subscription?.id}`,
+        product: {
+          id: userActiveProducts?.subscription?.id,
+          type: userActiveProducts?.subscription?.product?.recurring?.type,
+        },
+        accumulatedSessionId: null,
         name: userActiveProducts?.subscription?.product?.name,
-        type: userActiveProducts?.subscription?.product?.recurring?.type,
-        isAccumulatedSession: false,
       });
     }
 
@@ -264,12 +267,40 @@ function ProductSelectorDialog({
     if (filteredPacks && filteredPacks.length > 0) {
       items.push(
         ...filteredPacks.map((pack) => ({
-          id: pack.id,
+          reactKey: `pack-${pack.id}`,
+          product: {
+            id: pack.id,
+            type: ProductTypeEnum.PACK,
+          },
+          accumulatedSessionId: null,
           name: pack.product.name,
-          type: ProductTypeEnum.PACK,
-          isAccumulatedSession: false,
         })),
       );
+
+      const filteredAccumulatedSessions =
+        userActiveProducts?.accumulatedSessions.filter((accumulatedSession) => {
+          if (SESSION_TYPES_THAT_INCLUDE_REFORMER.includes(session.type)) {
+            return accumulatedSession.isReformer;
+          } else {
+            return accumulatedSession.isReformer === false;
+          }
+        });
+      if (
+        filteredAccumulatedSessions &&
+        filteredAccumulatedSessions.length > 0
+      ) {
+        items.push(
+          ...filteredAccumulatedSessions.map((accumulatedSession) => ({
+            reactKey: `accumulated-session-${accumulatedSession.id}:${accumulatedSession.product.id}`,
+            product: {
+              id: accumulatedSession.subscriptionId,
+              type: accumulatedSession.product.recurring.type,
+            },
+            accumulatedSessionId: accumulatedSession.id,
+            name: `${accumulatedSession.product.name} (Acumulada)`,
+          })),
+        );
+      }
 
       return items;
     }
@@ -282,7 +313,9 @@ function ProductSelectorDialog({
     if (!selectedProductId || !user?.id) {
       return;
     }
-    const selectedItem = items.find((item) => item.id === selectedProductId);
+    const selectedItem = items.find(
+      (item) => item.reactKey === selectedProductId,
+    );
     if (!selectedItem) {
       return;
     }
@@ -291,10 +324,10 @@ function ProductSelectorDialog({
       sessionId: session.id,
       userId: user.id,
       product: {
-        id: selectedProductId,
-        type: selectedItem.type,
-        accumulatedSessionId: selectedItem.isAccumulatedSession
-          ? selectedItem.id
+        id: selectedItem.product.id,
+        type: selectedItem.product.type,
+        accumulatedSessionId: selectedItem.accumulatedSessionId
+          ? selectedItem.accumulatedSessionId
           : undefined,
       },
     });
@@ -321,15 +354,15 @@ function ProductSelectorDialog({
             onValueChange={setSelectedProductId}
           >
             {items.map((item) => (
-              <div key={item.id} className="flex items-center gap-3">
+              <div key={item.reactKey} className="flex items-center gap-3">
                 <RadioGroupItem
-                  value={item.id}
-                  id={item.id}
+                  value={item.reactKey}
+                  id={item.reactKey}
                   className="cursor-pointer"
                 />
-                <Label htmlFor={item.id} className="cursor-pointer">
-                  <Badge variant={VARIANT_MAP[item.type]}>
-                    {LABELS_MAP[item.type]}
+                <Label htmlFor={item.reactKey} className="cursor-pointer">
+                  <Badge variant={VARIANT_MAP[item.product.type]}>
+                    {LABELS_MAP[item.product.type]}
                   </Badge>
                   {item.name}
                 </Label>
@@ -351,20 +384,23 @@ function ProductSelectorDialog({
 }
 
 interface ProductSelectorItem {
-  id: string;
+  reactKey: string;
   name: string;
-  type: ProductTypeEnum;
-  isAccumulatedSession: boolean;
+  accumulatedSessionId: string | null;
+  product: {
+    id: string; // pack id or subscription id
+    type: ProductTypeEnum;
+  };
 }
 
-const LABELS_MAP: Record<ProductTypeEnum, string> = {
+const LABELS_MAP: Record<ProductSelectorItem["product"]["type"], string> = {
   [ProductTypeEnum.SUBSCRIPTION]: "Sub",
   [ProductTypeEnum.SUBSCRIPTION_COMBO]: "Combo",
   [ProductTypeEnum.PACK]: "Pack",
 };
 
 const VARIANT_MAP: Record<
-  ProductTypeEnum,
+  ProductSelectorItem["product"]["type"],
   VariantProps<typeof badgeVariants>["variant"]
 > = {
   [ProductTypeEnum.SUBSCRIPTION]: "productSelectorSubscription",
