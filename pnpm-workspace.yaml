@@ -1,0 +1,4 @@
+onlyBuiltDependencies:
+  - browser-tabs-lock
+  - sharp
+  - unrs-resolver
