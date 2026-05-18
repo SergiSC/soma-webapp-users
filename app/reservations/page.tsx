@@ -12,28 +12,21 @@ export default function ProductsPage() {
 
   // Get type from URL query params
   const component = useMemo(() => {
-    const filterParam = searchParams.get("filter");
-    if (
-      filterParam &&
-      Object.values(ReservationListFilterEnum).includes(
-        filterParam as ReservationListFilterEnum,
-      )
-    ) {
-      if (filterParam === ReservationListFilterEnum.ACCUMULATED) {
+    const filterParam =
+      searchParams.get("filter") ?? ReservationListFilterEnum.FUTURE;
+
+    switch (filterParam) {
+      case ReservationListFilterEnum.ACCUMULATED:
         return (
           <AccumulatedReservationsList
             filter={filterParam as ReservationListFilterEnum}
           />
         );
-      } else {
+      default:
         return (
           <ReservationsList filter={filterParam as ReservationListFilterEnum} />
         );
-      }
     }
-    return (
-      <AccumulatedReservationsList filter={ReservationListFilterEnum.FUTURE} />
-    );
   }, [searchParams]);
 
   return (
