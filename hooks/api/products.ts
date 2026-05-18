@@ -62,6 +62,7 @@ export interface ListUserActiveProductsResponse {
   packs: PackObject[];
   accumulatedSessions: {
     id: string;
+    subscriptionId: string;
     product: {
       id: string;
       name: string;
