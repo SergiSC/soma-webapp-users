@@ -1,0 +1,4 @@
+ignoredBuiltDependencies:
+  - browser-tabs-lock
+  - sharp
+  - unrs-resolver
