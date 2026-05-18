@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import {
   ReservationListFilterEnum,
@@ -19,7 +18,6 @@ import { Separator } from "@/components/ui/separator";
 
 interface ReservationsListProps {
   filter: ReservationListFilterEnum;
-  setFilter: (filter: ReservationListFilterEnum) => void;
 }
 
 interface ReservationGroup {
@@ -101,7 +99,7 @@ function groupReservations(
   });
 }
 
-export function ReservationsList({ filter, setFilter }: ReservationsListProps) {
+export function ReservationsList({ filter }: ReservationsListProps) {
   const { user } = useUser();
   const router = useRouter();
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
@@ -126,10 +124,6 @@ export function ReservationsList({ filter, setFilter }: ReservationsListProps) {
 
   const reservations = data?.pages.flatMap((page) => page.items) ?? [];
   const groups = groupReservations(reservations);
-
-  function handleTabChange(value: string) {
-    setFilter(value as ReservationListFilterEnum);
-  }
 
   const [openCancelReservationDialog, setOpenCancelReservationDialog] =
     useState(false);
@@ -156,24 +150,6 @@ export function ReservationsList({ filter, setFilter }: ReservationsListProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Tabs
-        value={filter}
-        onValueChange={handleTabChange}
-        className="sticky top-0 bg-background z-10 pb-2"
-      >
-        <TabsList className="w-full">
-          <TabsTrigger value={ReservationListFilterEnum.FUTURE}>
-            Pròximes
-          </TabsTrigger>
-          <TabsTrigger value={ReservationListFilterEnum.PAST}>
-            Passades
-          </TabsTrigger>
-          <TabsTrigger value={ReservationListFilterEnum.ACCUMULATED}>
-            Acumulades
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-
       {isLoading ? (
         <div className="flex justify-center items-center h-full">
           <Loader2 className="w-4 h-4 animate-spin" />

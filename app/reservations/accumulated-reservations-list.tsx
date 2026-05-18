@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useRouter } from "next/navigation";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import {
   ReservationListFilterEnum,
@@ -15,14 +14,12 @@ import { AccumulatedSessionCard } from "@/components/cards/accumulated-session.c
 
 interface AccumulatedReservationsListProps {
   filter: ReservationListFilterEnum;
-  setFilter: (filter: ReservationListFilterEnum) => void;
 }
 
 export function AccumulatedReservationsList({
   filter,
 }: AccumulatedReservationsListProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user } = useUser();
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
     useInfiniteUserAccumulatedSessions(user?.id);
@@ -46,32 +43,8 @@ export function AccumulatedReservationsList({
 
   const accumulatedSessions = data?.pages.flatMap((page) => page.items) ?? [];
 
-  function handleTabChange(value: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("filter", value);
-    router.push(`?${params.toString()}`);
-  }
-
   return (
     <div className="flex flex-col gap-4">
-      <Tabs
-        value={filter}
-        onValueChange={handleTabChange}
-        className="sticky top-0 bg-background z-10 pb-2"
-      >
-        <TabsList className="w-full">
-          <TabsTrigger value={ReservationListFilterEnum.FUTURE}>
-            Pròximes
-          </TabsTrigger>
-          <TabsTrigger value={ReservationListFilterEnum.PAST}>
-            Passades
-          </TabsTrigger>
-          <TabsTrigger value={ReservationListFilterEnum.ACCUMULATED}>
-            Acumulades
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-
       {isLoading ? (
         <div className="flex justify-center items-center h-full">
           <Loader2 className="w-4 h-4 animate-spin" />
