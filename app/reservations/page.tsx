@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { PageSkeleton } from "@/components/page-skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReservationsList } from "./reservations-list";
@@ -10,7 +10,7 @@ import { AccumulatedReservationsList } from "./accumulated-reservations-list";
 
 export default function ProductsPage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
+  const pathname = usePathname();
 
   const filter = useMemo<ReservationListFilterEnum>(() => {
     const filterParam = searchParams.get("filter");
@@ -29,9 +29,9 @@ export default function ProductsPage() {
     (next: ReservationListFilterEnum) => {
       const params = new URLSearchParams(searchParams.toString());
       params.set("filter", next);
-      router.replace(`?${params.toString()}`, { scroll: false });
+      window.history.replaceState(null, "", `${pathname}?${params.toString()}`);
     },
-    [searchParams, router],
+    [pathname, searchParams],
   );
 
   return (
