@@ -54,6 +54,9 @@ export function ProductsList({ type }: ProductsListProps) {
           <ProductCard
             key={product.id}
             product={product}
+            isCurrentUserSubscriptionActive={
+              userActiveProducts?.subscription?.isActive ?? false
+            }
             userActiveProductId={
               product.recurring.type !== ProductTypeEnum.PACK
                 ? userActiveProductId

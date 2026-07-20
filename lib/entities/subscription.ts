@@ -24,4 +24,5 @@ export interface SubscriptionAggregate {
   updatedAt: string | null;
   cancelledAt: string | null;
   errorMessage: string | null;
+  isActive: boolean;
 }

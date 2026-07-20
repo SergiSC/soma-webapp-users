@@ -58,6 +58,7 @@ export interface ListUserActiveProductsResponse {
       }[]
     >;
     product: Product;
+    isActive: boolean;
   } | null;
   packs: PackObject[];
   accumulatedSessions: {

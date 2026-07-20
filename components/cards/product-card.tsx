@@ -32,11 +32,13 @@ import {
 interface ProductCardProps {
   product: Product;
   userActiveProductId?: string;
+  isCurrentUserSubscriptionActive: boolean;
 }
 
 export function ProductCard({
   product,
   userActiveProductId,
+  isCurrentUserSubscriptionActive,
 }: ProductCardProps) {
   const [url, setUrl] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -121,6 +123,7 @@ export function ProductCard({
           setIsDialogOpen={setIsDialogOpen}
           userActiveProductId={userActiveProductId}
           setIsChangeSubscriptionDialogOpen={setOpenChangeSubscriptionDialog}
+          isCurrentUserSubscriptionActive={isCurrentUserSubscriptionActive}
         />
       </Card>
       {url && (
@@ -143,7 +146,7 @@ export function ProductCard({
   );
 }
 
-function ProductCardHeader({ product }: ProductCardProps) {
+function ProductCardHeader({ product }: Pick<ProductCardProps, "product">) {
   return (
     <CardHeader className="rounded-t-md bg-primary/10">
       <CardTitle className="text-2xl font-bold text-foreground">
@@ -176,6 +179,7 @@ interface ProductCardFooterProps {
   setUrl: (url: string) => void;
   setIsDialogOpen: (isDialogOpen: boolean) => void;
   userActiveProductId?: string;
+  isCurrentUserSubscriptionActive: boolean;
   setIsChangeSubscriptionDialogOpen: (
     isChangeSubscriptionDialogOpen: boolean,
   ) => void;
@@ -187,15 +191,22 @@ function ProductCardFooter({
   setIsDialogOpen,
   userActiveProductId,
   setIsChangeSubscriptionDialogOpen,
+  isCurrentUserSubscriptionActive,
 }: ProductCardFooterProps) {
   const { mutateAsync: createCheckoutSessionMutation } =
     useCreateProductCheckoutSession(product.id);
   const { hasActive, isActive } = useMemo(() => {
+    if (!isCurrentUserSubscriptionActive) {
+      return {
+        hasActive: false,
+        isActive: false,
+      };
+    }
     return {
       hasActive: userActiveProductId !== undefined,
       isActive: userActiveProductId === product.id,
     };
-  }, [userActiveProductId, product.id]);
+  }, [userActiveProductId, product.id, isCurrentUserSubscriptionActive]);
   const { user } = useUser();
   const [isLoading, setIsLoading] = useState(false);
 
