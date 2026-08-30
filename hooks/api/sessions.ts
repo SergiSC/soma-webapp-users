@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ReservationStatus } from "./reservations";
 
 export enum SessionTypeEnum {
+  AERI = "aeri",
   PILATES_REFORMER = "reformer",
   PILATES_REFORMER_PRE_NATAL = "reformer_pre_natal",
   PILATES_MAT = "pilates_mat",

@@ -16,6 +16,7 @@ export const sessionColorsRecord: Record<SessionTypeEnum, string> = {
   [SessionTypeEnum.FIT_MIX]: "#ea4335",
   [SessionTypeEnum.PILATES_MAT_PLUS_65]: "#34a853",
   [SessionTypeEnum.FIT_MIX_PLUS_65]: "#ea4335",
+  [SessionTypeEnum.AERI]: "#cc9e50",
 };
 
 export const sessionStatusColorRecord: Record<SessionStatus, string> = {
@@ -26,6 +27,7 @@ export const sessionStatusColorRecord: Record<SessionStatus, string> = {
 };
 
 export const sessionTypeToLabel: Record<SessionTypeEnum, string> = {
+  [SessionTypeEnum.AERI]: "Aeri",
   [SessionTypeEnum.PILATES_REFORMER]: "Pilates Reformer",
   [SessionTypeEnum.PILATES_REFORMER_PRE_NATAL]: "Pilates Reformer Pre Natal",
   [SessionTypeEnum.PILATES_MAT]: "Pilates Mat",
