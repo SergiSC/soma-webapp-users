@@ -19,7 +19,7 @@ import {
   sessionColorsRecord,
   sessionLevelToLabel,
   sessionTypeToLabel,
-  sessionStatusColorRecord
+  sessionStatusColorRecord,
 } from "@/lib/constants";
 import { useUser } from "@/context/user-context";
 
@@ -58,12 +58,15 @@ export function SessionCard({
           return "Finalitzada";
         case SessionStatus.CANCELLED:
           return "Cancel·lada";
+        case SessionStatus.DRAFT:
+          return "Pròximament";
         default:
           return "No disponible";
       }
     }
     if (roomAtFullCapacity) return "Completa";
-    if (confirmedReservations.userIds.includes(user?.id ?? "")) return "Reservada";
+    if (confirmedReservations.userIds.includes(user?.id ?? ""))
+      return "Reservada";
     return "Reservar";
   })();
 
@@ -116,9 +119,7 @@ export function SessionCard({
         <Button
           variant="outline"
           disabled={
-            !canReserve ||
-            !!existingReservationType ||
-            roomAtFullCapacity
+            !canReserve || !!existingReservationType || roomAtFullCapacity
           }
           size="sm"
           className="mt-auto w-fit absolute bottom-4 right-4"
@@ -155,16 +156,16 @@ function SessionCardHeader({ session }: { session: DailySession }) {
   };
   const isSessionCompleted = session.status === SessionStatus.COMPLETED;
   const isSessionCancelled = session.status === SessionStatus.CANCELLED;
-  const sessionColor = isSessionCancelled 
-    ? sessionStatusColorRecord[SessionStatus.CANCELLED] 
-    : isSessionCompleted 
-      ? sessionStatusColorRecord[SessionStatus.COMPLETED] 
+  const sessionColor = isSessionCancelled
+    ? sessionStatusColorRecord[SessionStatus.CANCELLED]
+    : isSessionCompleted
+      ? sessionStatusColorRecord[SessionStatus.COMPLETED]
       : sessionColorsRecord[session.type];
 
   return (
     <CardHeader
       className="flex flex-row space-between items-center justify-between rounded-t-md"
-      style={{ backgroundColor:  `${sessionColor}50` }}
+      style={{ backgroundColor: `${sessionColor}50` }}
     >
       <CardTitle>{sessionTypeToLabel[session.type]}</CardTitle>
       <CardDescription className="text-md text-muted-foreground font-semibold">
