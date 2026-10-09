@@ -27,6 +27,10 @@ export default function MePage() {
         {
           content: <UserInformation />,
         },
+        // {
+        //   // Bottom padding keeps the notice clear of the fixed logout button.
+        //   content: <FundingNotice className="pt-4 pb-16" />,
+        // },
         {
           content: <LogoutButton />,
           className: "fixed bottom-20 left-0 right-0",

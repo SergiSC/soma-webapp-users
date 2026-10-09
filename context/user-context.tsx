@@ -1,6 +1,7 @@
 "use client";
 
 import { LogInButton } from "@/components/logInButton";
+import { FundingNotice } from "@/components/funding-notice";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import {
@@ -109,9 +110,12 @@ export function UserProvider({ children }: UserProviderProps) {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen gap-4">
-        {useMemoProjectSomaLogo}
-        <LogInButton label="Iniciar sessió" />
+      <div className="flex min-h-dvh flex-col">
+        <div className="flex flex-1 flex-col items-center justify-center gap-4">
+          {useMemoProjectSomaLogo}
+          <LogInButton label="Iniciar sessió" />
+        </div>
+        <FundingNotice className="px-6 pb-8" />
       </div>
     );
   }
