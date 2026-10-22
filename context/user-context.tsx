@@ -56,7 +56,7 @@ export function UserProvider({ children }: UserProviderProps) {
     const getTokenAndLogin = async () => {
       try {
         const accessToken = await getAccessTokenSilently();
-        apiClient.setAuthToken(accessToken);
+        apiClient.setAuthToken(accessToken ?? null);
         loginUser({
           email: auth0User?.email || "",
           externalId: auth0User?.sub || "",
