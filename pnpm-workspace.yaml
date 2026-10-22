@@ -2,3 +2,9 @@ onlyBuiltDependencies:
   - browser-tabs-lock
   - sharp
   - unrs-resolver
+
+auditConfig:
+  ignoreGhsas:
+    # braces <=3.0.3 stack overflow: no patched release exists. Only reached via
+    # eslint-config-next (lint-time), never with untrusted patterns. Re-check when braces ships a fix.
+    - GHSA-vfj7-8cjw-p6xm
