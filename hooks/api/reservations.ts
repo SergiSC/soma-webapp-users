@@ -101,7 +101,7 @@ export interface CreateReservationRequest extends Record<string, unknown> {
   product: {
     id: string;
     type: ProductTypeEnum;
-    accumulatedSessionId?: string;
+    useAccumulatedSession?: boolean;
   };
 }
 
