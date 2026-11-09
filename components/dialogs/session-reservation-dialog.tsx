@@ -22,6 +22,7 @@ import {
 import { Button } from "../ui/button";
 import { useMemo, useState } from "react";
 import {
+  ListUserActiveProductsResponse,
   ProductTypeEnum,
   useListUserActiveProducts,
 } from "@/hooks/api/products";
@@ -252,7 +253,7 @@ function ProductSelectorDialog({
           id: userActiveProducts?.subscription?.id,
           type: userActiveProducts?.subscription?.product?.recurring?.type,
         },
-        accumulatedSessionId: null,
+        useAccumulatedSession: false,
         name: userActiveProducts?.subscription?.product?.name,
       });
     }
@@ -272,36 +273,51 @@ function ProductSelectorDialog({
             id: pack.id,
             type: ProductTypeEnum.PACK,
           },
-          accumulatedSessionId: null,
+          useAccumulatedSession: false,
           name: pack.product.name,
         })),
       );
     }
 
-    const filteredAccumulatedSessions =
-      userActiveProducts?.accumulatedSessions.filter((accumulatedSession) => {
-        if (SESSION_TYPES_THAT_INCLUDE_REFORMER.includes(session.type)) {
-          return accumulatedSession.isReformer;
-        } else {
-          return accumulatedSession.isReformer === false;
-        }
-      });
-    if (filteredAccumulatedSessions && filteredAccumulatedSessions.length > 0) {
-      items.push(
-        ...filteredAccumulatedSessions.map((accumulatedSession) => ({
-          reactKey: `accumulated-session-${accumulatedSession.id}:${accumulatedSession.product.id}`,
-          product: {
-            id: accumulatedSession.subscriptionId,
-            type: accumulatedSession.product.recurring.type,
-          },
-          accumulatedSessionId: accumulatedSession.id,
-          name: `${accumulatedSession.product.name} (Acumulada)`,
-        })),
-      );
+    const accumulatedBySubscription = new Map<
+      string,
+      ListUserActiveProductsResponse["accumulatedSessions"]
+    >();
+    for (const accumulatedSession of userActiveProducts?.accumulatedSessions ??
+      []) {
+      const sameReformerType =
+        accumulatedSession.isReformer ===
+        SESSION_TYPES_THAT_INCLUDE_REFORMER.includes(session.type);
+      const validOnClassDay =
+        accumulatedSession.expiresAt.slice(0, 10) > session.day.slice(0, 10);
+      if (!sameReformerType || !validOnClassDay) {
+        continue;
+      }
+      const group =
+        accumulatedBySubscription.get(accumulatedSession.subscriptionId) ?? [];
+      group.push(accumulatedSession);
+      accumulatedBySubscription.set(accumulatedSession.subscriptionId, group);
     }
+    accumulatedBySubscription.forEach((accumulatedSessions, subscriptionId) => {
+      const [first] = accumulatedSessions;
+      const earliestExpiry = accumulatedSessions
+        .map((accumulatedSession) => accumulatedSession.expiresAt)
+        .sort()[0];
+      const available = accumulatedSessions.length;
+      items.push({
+        reactKey: `accumulated-sessions-${subscriptionId}`,
+        product: {
+          id: subscriptionId,
+          type: first.product.recurring.type,
+        },
+        useAccumulatedSession: true,
+        name: `${first.product.name} (Acumulada)`,
+        detail: `${available} ${available === 1 ? "disponible" : "disponibles"} · caduca ${formatDayMonth(earliestExpiry)}`,
+      });
+    });
 
     return items;
-  }, [userActiveProducts, session.type]);
+  }, [userActiveProducts, session.type, session.day]);
 
   const displaEmptyState = items.length === 0;
 
@@ -322,9 +338,7 @@ function ProductSelectorDialog({
       product: {
         id: selectedItem.product.id,
         type: selectedItem.product.type,
-        accumulatedSessionId: selectedItem.accumulatedSessionId
-          ? selectedItem.accumulatedSessionId
-          : undefined,
+        useAccumulatedSession: selectedItem.useAccumulatedSession || undefined,
       },
     });
     onReservationCreated();
@@ -360,7 +374,14 @@ function ProductSelectorDialog({
                   <Badge variant={VARIANT_MAP[item.product.type]}>
                     {LABELS_MAP[item.product.type]}
                   </Badge>
-                  {item.name}
+                  <span>
+                    {item.name}
+                    {item.detail && (
+                      <span className="block text-sm text-muted-foreground">
+                        {item.detail}
+                      </span>
+                    )}
+                  </span>
                 </Label>
               </div>
             ))}
@@ -382,7 +403,8 @@ function ProductSelectorDialog({
 interface ProductSelectorItem {
   reactKey: string;
   name: string;
-  accumulatedSessionId: string | null;
+  detail?: string;
+  useAccumulatedSession: boolean;
   product: {
     id: string; // pack id or subscription id
     type: ProductTypeEnum;
@@ -403,3 +425,9 @@ const VARIANT_MAP: Record<
   [ProductTypeEnum.SUBSCRIPTION_COMBO]: "productSelectorSubscription",
   [ProductTypeEnum.PACK]: "productSelectorPack",
 };
+
+// Parsed from the string: new Date("YYYY-MM-DD") is UTC and can shift the day in local time.
+function formatDayMonth(isoDate: string): string {
+  const [, month, day] = isoDate.slice(0, 10).split("-");
+  return `${day}/${month}`;
+}
