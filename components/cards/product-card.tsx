@@ -92,6 +92,16 @@ export function ProductCard({
       });
     }
 
+    if (recurring.type === ProductTypeEnum.UNLIMITED) {
+      entries.push({ label: "Classes per setmana", value: "Il·limitades" });
+      entries.push({
+        label:
+          "Subscripció " +
+          (recurring.interval === "month" ? "mensual" : "anual"),
+        value: "(des de el dia de la compra)",
+      });
+    }
+
     return entries.map((entry) => (
       <p
         key={entry.label}
@@ -166,12 +176,14 @@ const productCardBadgeVariants = {
   [ProductTypeEnum.PACK]: "Pack",
   [ProductTypeEnum.SUBSCRIPTION]: "Subscripció",
   [ProductTypeEnum.SUBSCRIPTION_COMBO]: "Combo",
+  [ProductTypeEnum.UNLIMITED]: "Il·limitat",
 };
 
 const productCardBadgeColors = {
   [ProductTypeEnum.PACK]: "bg-product-type-pack",
   [ProductTypeEnum.SUBSCRIPTION]: "bg-product-type-subscription",
   [ProductTypeEnum.SUBSCRIPTION_COMBO]: "bg-product-type-subscription-combo",
+  [ProductTypeEnum.UNLIMITED]: "bg-product-type-unlimited",
 };
 
 interface ProductCardFooterProps {
@@ -321,4 +333,5 @@ const productCardFooterTexts = {
   [ProductTypeEnum.PACK]: "Preu total",
   [ProductTypeEnum.SUBSCRIPTION]: "Preu mensual",
   [ProductTypeEnum.SUBSCRIPTION_COMBO]: "Preu mensual",
+  [ProductTypeEnum.UNLIMITED]: "Preu mensual",
 };

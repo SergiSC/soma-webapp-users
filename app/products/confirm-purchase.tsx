@@ -27,6 +27,12 @@ const labels: Record<ProductTypeEnum, string[]> = {
     "Totes les classes tenen una durada de 50 minuts.",
     "En cas que es vulgui cancel·lar la subscripció, caldrà fer-ho com a mínim de 10 dies abans del pròxim pagament.",
   ],
+  [ProductTypeEnum.UNLIMITED]: [
+    "Subscripció Il·limitada (es cobra automàticament al final de cada període).",
+    "L'inici de la subscripció serà el dia de la compra.",
+    "Totes les classes tenen una durada de 50 minuts.",
+    "En cas que es vulgui cancel·lar la subscripció, caldrà fer-ho com a mínim de 10 dies abans del pròxim pagament.",
+  ],
 };
 
 interface PurchaseOrRejectproductDialogProps {

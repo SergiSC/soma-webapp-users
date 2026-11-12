@@ -47,6 +47,7 @@
   --color-product-type-subscription-combo: var(
     --product-type-subscription-combo
   );
+  --color-product-type-unlimited: var(--product-type-unlimited);
 }
 
 :root {
@@ -87,6 +88,7 @@
   --product-type-pack: #446224;
   --product-type-subscription: #25285e;
   --product-type-subscription-combo: #c08843;
+  --product-type-unlimited: #7a2e4d;
 }
 
 .dark {
@@ -126,6 +128,7 @@
   --product-type-pack: #446224;
   --product-type-subscription: #25285e;
   --product-type-subscription-combo: #c08843;
+  --product-type-unlimited: #7a2e4d;
 }
 
 @layer base {

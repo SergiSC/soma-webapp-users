@@ -415,6 +415,7 @@ const LABELS_MAP: Record<ProductSelectorItem["product"]["type"], string> = {
   [ProductTypeEnum.SUBSCRIPTION]: "Sub",
   [ProductTypeEnum.SUBSCRIPTION_COMBO]: "Combo",
   [ProductTypeEnum.PACK]: "Pack",
+  [ProductTypeEnum.UNLIMITED]: "Il·limitat",
 };
 
 const VARIANT_MAP: Record<
@@ -424,6 +425,7 @@ const VARIANT_MAP: Record<
   [ProductTypeEnum.SUBSCRIPTION]: "productSelectorSubscription",
   [ProductTypeEnum.SUBSCRIPTION_COMBO]: "productSelectorSubscription",
   [ProductTypeEnum.PACK]: "productSelectorPack",
+  [ProductTypeEnum.UNLIMITED]: "productSelectorUnlimited",
 };
 
 // Parsed from the string: new Date("YYYY-MM-DD") is UTC and can shift the day in local time.
