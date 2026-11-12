@@ -28,6 +28,8 @@ const badgeVariants = cva(
           "border-transparent bg-product-type-subscription text-white",
         productSelectorSubscriptionCombo:
           "border-transparent bg-product-type-subscription-combo text-white",
+        productSelectorUnlimited:
+          "border-transparent bg-product-type-unlimited text-white",
         productSelectorPack:
           "border-transparent bg-product-type-pack text-white",
         productSelectorAccumulatedSession:

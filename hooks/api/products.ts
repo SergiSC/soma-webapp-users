@@ -7,6 +7,7 @@ export enum ProductTypeEnum {
   PACK = "pack",
   SUBSCRIPTION = "subscription",
   SUBSCRIPTION_COMBO = "subscription-combo",
+  UNLIMITED = "unlimited",
 }
 
 export enum RecurringIntervalEnum {

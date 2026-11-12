@@ -95,6 +95,7 @@ const subscriptionCardHeaderBackground: Record<ProductTypeEnum, string> = {
   [ProductTypeEnum.PACK]: "bg-product-type-pack",
   [ProductTypeEnum.SUBSCRIPTION]: "bg-product-type-subscription",
   [ProductTypeEnum.SUBSCRIPTION_COMBO]: "bg-product-type-subscription-combo",
+  [ProductTypeEnum.UNLIMITED]: "bg-product-type-unlimited",
 };
 
 function SubscriptionCardHeader({ subscription }: SubscriptionCardProps) {
@@ -247,6 +248,19 @@ function recurringDetailLines(
           : recurring.interval === RecurringIntervalEnum.YEAR
             ? "Combo anual"
             : "Combo",
+    });
+  }
+
+  if (recurring.type === ProductTypeEnum.UNLIMITED) {
+    lines.push({ label: "Classes per setmana", value: "Il·limitades" });
+    lines.push({
+      label: "Cicle",
+      value:
+        recurring.interval === RecurringIntervalEnum.MONTH
+          ? "Mensual"
+          : recurring.interval === RecurringIntervalEnum.YEAR
+            ? "Anual"
+            : "—",
     });
   }
 

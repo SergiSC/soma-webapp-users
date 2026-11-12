@@ -35,6 +35,7 @@ const subscriptionCardHeaderBackground: Record<ProductTypeEnum, string> = {
   [ProductTypeEnum.PACK]: "bg-product-type-pack",
   [ProductTypeEnum.SUBSCRIPTION]: "bg-product-type-subscription",
   [ProductTypeEnum.SUBSCRIPTION_COMBO]: "bg-product-type-subscription-combo",
+  [ProductTypeEnum.UNLIMITED]: "bg-product-type-unlimited",
 };
 
 function PackCardHeader({ pack }: PackCardProps) {
