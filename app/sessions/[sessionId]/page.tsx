@@ -395,6 +395,7 @@ function ReservationsList({ reservations }: ReservationsListProps) {
               {reservation.status === ReservationStatus.CONFIRMED && (
                 <button
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     cancelReservation({
                       userId: reservation.user.id,
